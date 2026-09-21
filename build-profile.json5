@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\Lenovo\\.ohos\\config\\default_vexelCoffeeBar_vebvGdyE4vCPOzg0lwXmkyFuOnHugW6Ui1LQGQRm6io=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001B5956544403017E9A9DAEA3AF90F9FAC8CF3B38F3FF586F03A4AF00FE49FF03834C656CA2E4DD46",
+          "profile": "C:\\Users\\Lenovo\\.ohos\\config\\default_vexelCoffeeBar_vebvGdyE4vCPOzg0lwXmkyFuOnHugW6Ui1LQGQRm6io=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\Lenovo\\.ohos\\config\\default_vexelCoffeeBar_vebvGdyE4vCPOzg0lwXmkyFuOnHugW6Ui1LQGQRm6io=.p12",
+          "storePassword": "0000001BD2A8CA5D4CDD55C5D00D16D8DFC257DEDAC54EA62F02DB4B9796B8D7B470755980D72B73FD5AD6"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",
