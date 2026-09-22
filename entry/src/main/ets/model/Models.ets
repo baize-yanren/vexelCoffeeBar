@@ -110,6 +110,7 @@ export class BrewRecord {
   steepHours: number = 0;       // 冷萃冷藏时长（小时）
   steepMinutes: number = 0;     // 爱乐压浸泡时间（分）
   pressSeconds: number = 0;     // 爱乐压压下时长（秒）
+  beanCost: number = 0;         // 本次冲煮耗豆成本（元，按豆价/克重×粉量）
 
   static of(brewDate: number, method: string): BrewRecord {
     const r = new BrewRecord();
@@ -206,7 +207,8 @@ export class BrewRecord {
       'pressure': this.pressure,
       'steepHours': this.steepHours,
       'steepMinutes': this.steepMinutes,
-      'pressSeconds': this.pressSeconds
+      'pressSeconds': this.pressSeconds,
+      'beanCost': this.beanCost
     };
     return JSON.stringify(r);
   }
@@ -236,6 +238,7 @@ export class BrewRecord {
       this.steepHours = BrewRecord.numOf(obj, 'steepHours');
       this.steepMinutes = BrewRecord.numOf(obj, 'steepMinutes');
       this.pressSeconds = BrewRecord.numOf(obj, 'pressSeconds');
+      this.beanCost = BrewRecord.numOf(obj, 'beanCost');
     } catch (e) {
       console.error(`applyExtraJson failed: ${e}`);
     }

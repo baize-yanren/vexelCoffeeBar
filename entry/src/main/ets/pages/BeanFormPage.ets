@@ -177,9 +177,9 @@ struct BeanFormPage {
       onAccept: (value: DatePickerResult) => {
         const current: Date = new Date(initial);
         const y: number = value.year ?? current.getFullYear();
-        const m: number = value.month ?? (current.getMonth() + 1);
+        const m: number = value.month ?? current.getMonth();
         const d: number = value.day ?? current.getDate();
-        const ts: number = new Date(y, m - 1, d, 12, 0, 0).getTime();
+        const ts: number = new Date(y, m, d, 12, 0, 0).getTime();
         if (key === 'roast') {
           this.roastDate = ts;
         } else if (key === 'shelf') {

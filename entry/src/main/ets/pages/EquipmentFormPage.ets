@@ -190,9 +190,9 @@ struct EquipmentFormPage {
       onAccept: (value: DatePickerResult) => {
         const current: Date = new Date(this.purchaseDate);
         const y: number = value.year ?? current.getFullYear();
-        const m: number = value.month ?? (current.getMonth() + 1);
+        const m: number = value.month ?? current.getMonth();
         const d: number = value.day ?? current.getDate();
-        this.purchaseDate = new Date(y, m - 1, d, 12, 0, 0).getTime();
+        this.purchaseDate = new Date(y, m, d, 12, 0, 0).getTime();
       }
     });
   }

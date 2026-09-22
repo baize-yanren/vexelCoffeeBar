@@ -210,9 +210,9 @@ struct BrewFormPage {
       onAccept: (value: DatePickerResult) => {
         const current: Date = new Date(this.brewDate);
         const y: number = value.year ?? current.getFullYear();
-        const m: number = value.month ?? (current.getMonth() + 1);
+        const m: number = value.month ?? current.getMonth();
         const d: number = value.day ?? current.getDate();
-        this.brewDate = new Date(y, m - 1, d, 12, 0, 0).getTime();
+        this.brewDate = new Date(y, m, d, 12, 0, 0).getTime();
       }
     });
   }
@@ -264,6 +264,18 @@ struct BrewFormPage {
       return -1;
     }
     return n;
+  }
+
+  private computeBeanCost(doseNum: number): number {
+    if (this.beanId <= 0 || doseNum <= 0) {
+      return 0;
+    }
+    const bean: CoffeeBean | undefined =
+      this.beans.find((b: CoffeeBean): boolean => b.id === this.beanId);
+    if (bean === undefined || bean.weight <= 0) {
+      return 0;
+    }
+    return Math.round(bean.price / bean.weight * doseNum * 100) / 100;
   }
 
   private save(): void {
@@ -388,6 +400,7 @@ struct BrewFormPage {
       r.steepMinutes = steepNum;
     }
     r.pressSeconds = pressNum;
+    r.beanCost = this.computeBeanCost(doseNum);
     r.rating = this.rating;
     r.notes = this.notes.trim();
     r.id = this.editId;

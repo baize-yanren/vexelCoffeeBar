@@ -11,6 +11,7 @@ import { ClipboardImport, ClipboardCheckResult } from '../service/ClipboardImpor
 import { LibraryView } from './LibraryView';
 import { BrewLogView } from './BrewLogView';
 import { MineView } from './MineView';
+import { HomeView } from './HomeView';
 
 @Entry
 @Component
@@ -136,9 +137,10 @@ struct Index {
   @Builder
   dockBar() {
     Row() {
-      this.tabItem(0, '📖', '库藏')
-      this.tabItem(1, '⏱', '冲煮')
-      this.tabItem(2, '👤', '我的')
+      this.tabItem(0, '📊', '首页')
+      this.tabItem(1, '📖', '库藏')
+      this.tabItem(2, '⏱', '冲煮')
+      this.tabItem(3, '👤', '我的')
       Divider()
         .vertical(true)
         .height(26)
@@ -171,6 +173,10 @@ struct Index {
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Tabs({ barPosition: BarPosition.End, controller: this.tabController }) {
+        TabContent() {
+          HomeView()
+        }.tabBar('首页')
+
         TabContent() {
           LibraryView()
         }.tabBar('库藏')
