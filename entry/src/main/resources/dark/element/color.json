@@ -2,7 +2,59 @@
   "color": [
     {
       "name": "start_window_background",
-      "value": "#000000"
+      "value": "#16130F"
+    },
+    {
+      "name": "card_background",
+      "value": "#241F1B"
+    },
+    {
+      "name": "input_background",
+      "value": "#2E2822"
+    },
+    {
+      "name": "text_primary",
+      "value": "#ECE7E2"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#C4BCB4"
+    },
+    {
+      "name": "text_tertiary",
+      "value": "#948D85"
+    },
+    {
+      "name": "text_hint",
+      "value": "#7A746C"
+    },
+    {
+      "name": "text_disabled",
+      "value": "#4E4842"
+    },
+    {
+      "name": "divider_color",
+      "value": "#3A3530"
+    },
+    {
+      "name": "chip_background",
+      "value": "#241F1B"
+    },
+    {
+      "name": "danger_color",
+      "value": "#FF7849"
+    },
+    {
+      "name": "mask_color",
+      "value": "#8C000000"
+    },
+    {
+      "name": "sheet_background",
+      "value": "#EB211C18"
+    },
+    {
+      "name": "dock_divider_color",
+      "value": "#33FFFFFF"
     }
   ]
 }

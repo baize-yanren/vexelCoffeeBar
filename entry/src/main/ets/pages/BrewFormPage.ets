@@ -5,11 +5,13 @@ import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
 import { DateUtil } from '../common/DateUtil';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
+import { ThemePalette } from '../common/Theme';
 
 @Entry
 @Component
 struct BrewFormPage {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
+  @StorageProp('isDarkMode') isDarkMode: boolean = false;
   @State method: string = '';
   @State fieldConfig: BrewFieldConfig = new BrewFieldConfig();
   @State beanId: number = -1;
@@ -231,7 +233,7 @@ struct BrewFormPage {
   fieldLabel(text: string) {
     Text(text)
       .fontSize(14)
-      .fontColor('#666666')
+      .fontColor($r('app.color.text_secondary'))
       .width(80)
   }
 
@@ -241,7 +243,7 @@ struct BrewFormPage {
         Row({ space: 8 }) {
           Text('‹')
             .fontSize(28)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .padding({ left: 4, right: 8 })
             .onClick(() => {
               this.getUIContext().getRouter().back();
@@ -249,7 +251,7 @@ struct BrewFormPage {
           Text(this.editId > 0 ? '编辑冲煮' : '记录冲煮')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 14, bottom: 10 })
@@ -260,11 +262,11 @@ struct BrewFormPage {
               this.fieldLabel('冲煮时间')
               Text(DateUtil.formatDate(this.brewDate))
                 .fontSize(15)
-                .fontColor('#333333')
+                .fontColor($r('app.color.text_primary'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.pickDate();
@@ -276,11 +278,11 @@ struct BrewFormPage {
               this.fieldLabel('冲煮方式 *')
               Text(this.method.length > 0 ? this.method : '点击选择')
                 .fontSize(15)
-                .fontColor(this.method.length > 0 ? '#333333' : '#AAAAAA')
+                .fontColor(this.method.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.openSheet('method');
@@ -292,13 +294,13 @@ struct BrewFormPage {
               this.fieldLabel('咖啡豆')
               Text(this.beanName.length > 0 ? this.beanName : '不关联')
                 .fontSize(15)
-                .fontColor(this.beanName.length > 0 ? '#333333' : '#AAAAAA')
+                .fontColor(this.beanName.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .maxLines(1)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.openSheet('bean');
@@ -310,7 +312,10 @@ struct BrewFormPage {
               this.fieldLabel('粉量（g）')
               TextInput({ placeholder: '如：15（选填）', text: this.dose })
                 .layoutWeight(1)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.dose = value;
@@ -323,7 +328,10 @@ struct BrewFormPage {
                 this.fieldLabel('水量（g）')
                 TextInput({ placeholder: '如：225（选填）', text: this.waterAmount })
                   .layoutWeight(1)
-                  .backgroundColor('#FFFFFF')
+                  .backgroundColor($r('app.color.input_background'))
+                  .fontColor($r('app.color.text_primary'))
+                  .placeholderColor($r('app.color.text_hint'))
+                  .caretColor(this.themeColor)
                   .borderRadius(12)
                   .onChange((value: string) => {
                     this.waterAmount = value;
@@ -337,7 +345,10 @@ struct BrewFormPage {
                 this.fieldLabel('水温（℃）')
                 TextInput({ placeholder: '如：92（选填）', text: this.waterTemp })
                   .layoutWeight(1)
-                  .backgroundColor('#FFFFFF')
+                  .backgroundColor($r('app.color.input_background'))
+                  .fontColor($r('app.color.text_primary'))
+                  .placeholderColor($r('app.color.text_hint'))
+                  .caretColor(this.themeColor)
                   .borderRadius(12)
                   .onChange((value: string) => {
                     this.waterTemp = value;
@@ -350,11 +361,11 @@ struct BrewFormPage {
               this.fieldLabel('研磨度')
               Text(this.grindSize.length > 0 ? this.grindSize : '点击选择')
                 .fontSize(15)
-                .fontColor(this.grindSize.length > 0 ? '#333333' : '#AAAAAA')
+                .fontColor(this.grindSize.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.openSheet('grind');
@@ -366,7 +377,10 @@ struct BrewFormPage {
               this.fieldLabel(`${this.fieldConfig.durationLabel}（秒）`)
               TextInput({ placeholder: '如：150（选填）', text: this.brewDuration })
                 .layoutWeight(1)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.brewDuration = value;
@@ -377,7 +391,7 @@ struct BrewFormPage {
             if (this.durationHint().length > 0) {
               Text(this.durationHint())
                 .fontSize(12)
-                .fontColor('#999999')
+                .fontColor($r('app.color.text_tertiary'))
                 .width('100%')
                 .padding({ left: 90 })
             }
@@ -388,7 +402,7 @@ struct BrewFormPage {
                 ForEach([1, 2, 3, 4, 5], (n: number) => {
                   Text(n <= this.rating ? '★' : '☆')
                     .fontSize(26)
-                    .fontColor(n <= this.rating ? this.themeColor : '#CCCCCC')
+                    .fontColor(n <= this.rating ? this.themeColor : $r('app.color.text_disabled'))
                     .onClick(() => {
                       this.rating = n === this.rating ? 0 : n;
                     })
@@ -402,11 +416,14 @@ struct BrewFormPage {
             Column({ space: 8 }) {
               Text('备注')
                 .fontSize(14)
-                .fontColor('#666666')
+                .fontColor($r('app.color.text_secondary'))
               TextArea({ placeholder: '今天这杯的感受…（选填）', text: this.notes })
                 .width('100%')
                 .height(90)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.notes = value;
@@ -418,7 +435,7 @@ struct BrewFormPage {
             if (this.errorText.length > 0) {
               Text(this.errorText)
                 .fontSize(12)
-                .fontColor('#D9480F')
+                .fontColor($r('app.color.danger_color'))
                 .width('100%')
                 .textAlign(TextAlign.Center)
             }
@@ -480,6 +497,6 @@ struct BrewFormPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F1EC')
+    .backgroundColor(ThemePalette.page(this.themeColor, this.isDarkMode))
   }
 }

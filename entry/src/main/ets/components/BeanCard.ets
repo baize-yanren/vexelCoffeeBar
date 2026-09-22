@@ -1,5 +1,6 @@
 import { CoffeeBean } from '../model/Models';
 import { DateUtil } from '../common/DateUtil';
+import { ThemePalette } from '../common/Theme';
 
 @Component
 export struct BeanCard {
@@ -15,7 +16,7 @@ export struct BeanCard {
           Text(this.bean.variety)
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .layoutWeight(1)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -29,7 +30,7 @@ export struct BeanCard {
         if (this.bean.name.length > 0) {
           Text(this.bean.name)
             .fontSize(13)
-            .fontColor('#888888')
+            .fontColor($r('app.color.text_tertiary'))
             .maxLines(1)
         }
 
@@ -37,12 +38,12 @@ export struct BeanCard {
           if (this.bean.vendor.length > 0) {
             Text(this.bean.vendor)
               .fontSize(12)
-              .fontColor('#999999')
+              .fontColor($r('app.color.text_tertiary'))
               .maxLines(1)
           }
           Text(DateUtil.formatDate(this.bean.purchaseDate))
             .fontSize(12)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
         }
         .width('100%')
 
@@ -52,7 +53,7 @@ export struct BeanCard {
               Text(tag)
                 .fontSize(11)
                 .fontColor(this.themeColor)
-                .backgroundColor('#F5EDE4')
+                .backgroundColor(ThemePalette.alpha(this.themeColor, 0.12))
                 .padding({ left: 8, right: 8, top: 3, bottom: 3 })
                 .borderRadius(10)
                 .margin({ right: 6, bottom: 4 })
@@ -69,7 +70,7 @@ export struct BeanCard {
 
       Text('✕')
         .fontSize(15)
-        .fontColor('#CCCCCC')
+        .fontColor($r('app.color.text_disabled'))
         .padding(6)
         .onClick(() => {
           this.onDelete(this.bean);
@@ -77,7 +78,7 @@ export struct BeanCard {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.card_background'))
     .borderRadius(16)
     .alignItems(VerticalAlign.Top)
   }

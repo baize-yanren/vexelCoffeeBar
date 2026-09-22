@@ -4,7 +4,7 @@ import { FormParams } from '../model/RouteParams';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
 import { ImportPreviewSheet } from '../components/ImportPreviewSheet';
 import { ImportDraft } from '../model/ImportDraft';
-import { AppKeys } from '../common/Theme';
+import { AppKeys, ThemePalette } from '../common/Theme';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
 import { ClipboardImport, ClipboardCheckResult } from '../service/ClipboardImport';
@@ -21,6 +21,7 @@ struct Index {
   @State importDraft: ImportDraft = new ImportDraft();
   @State importCategory: string = 'unknown';
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
+  @StorageProp('isDarkMode') isDarkMode: boolean = false;
   private tabController: TabsController = new TabsController();
   private addOptions: OptionItem[] = [];
 
@@ -121,7 +122,7 @@ struct Index {
         .fontSize(20)
       Text(label)
         .fontSize(11)
-        .fontColor(this.currentTab === index ? this.themeColor : '#999999')
+        .fontColor(this.currentTab === index ? this.themeColor : $r('app.color.text_tertiary'))
     }
     .alignItems(HorizontalAlign.Center)
     .justifyContent(FlexAlign.Center)
@@ -141,7 +142,7 @@ struct Index {
       Divider()
         .vertical(true)
         .height(26)
-        .color('#DDDDDD')
+        .color($r('app.color.dock_divider_color'))
         .margin({ left: 10, right: 14 })
       Text('+')
         .fontSize(26)
@@ -152,7 +153,7 @@ struct Index {
         .height(46)
         .backgroundColor(this.themeColor)
         .borderRadius(23)
-        .shadow({ radius: 8, color: 'rgba(111,78,55,0.4)', offsetY: 3 })
+        .shadow({ radius: 8, color: ThemePalette.alpha(this.themeColor, 0.4), offsetY: 3 })
         .onClick(() => {
           this.openAddSheet();
         })
@@ -216,6 +217,6 @@ struct Index {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F1EC')
+    .backgroundColor(ThemePalette.page(this.themeColor, this.isDarkMode))
   }
 }

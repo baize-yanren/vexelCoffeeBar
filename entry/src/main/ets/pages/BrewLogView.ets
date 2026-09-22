@@ -69,9 +69,9 @@ export struct BrewLogView {
   methodChip(label: string) {
     Text(label)
       .fontSize(12)
-      .fontColor(this.filterMethod === label ? '#FFFFFF' : '#666666')
+      .fontColor(this.filterMethod === label ? '#FFFFFF' : $r('app.color.text_secondary'))
       .padding({ left: 12, right: 12, top: 5, bottom: 5 })
-      .backgroundColor(this.filterMethod === label ? this.themeColor : '#FFFFFF')
+      .backgroundColor(this.filterMethod === label ? this.themeColor : $r('app.color.chip_background'))
       .borderRadius(14)
       .margin({ right: 8, bottom: 6 })
       .onClick(() => {
@@ -84,7 +84,7 @@ export struct BrewLogView {
       Text('冲煮')
         .fontSize(24)
         .fontWeight(FontWeight.Bold)
-        .fontColor('#333333')
+        .fontColor($r('app.color.text_primary'))
         .width('100%')
         .padding({ left: 16, right: 16, top: 14, bottom: 10 })
 
@@ -92,9 +92,9 @@ export struct BrewLogView {
         Flex({ wrap: FlexWrap.Wrap }) {
           Text('全部')
             .fontSize(12)
-            .fontColor(this.filterMethod.length === 0 ? '#FFFFFF' : '#666666')
+            .fontColor(this.filterMethod.length === 0 ? '#FFFFFF' : $r('app.color.text_secondary'))
             .padding({ left: 12, right: 12, top: 5, bottom: 5 })
-            .backgroundColor(this.filterMethod.length === 0 ? this.themeColor : '#FFFFFF')
+            .backgroundColor(this.filterMethod.length === 0 ? this.themeColor : $r('app.color.chip_background'))
             .borderRadius(14)
             .margin({ right: 8, bottom: 6 })
             .onClick(() => {
@@ -116,7 +116,7 @@ export struct BrewLogView {
             .fontSize(48)
           Text(this.filterMethod.length === 0 ? '还没有冲煮记录\n点右下角 + 添加' : `暂无「${this.filterMethod}」记录`)
             .fontSize(13)
-            .fontColor('#AAAAAA')
+            .fontColor($r('app.color.text_hint'))
             .textAlign(TextAlign.Center)
         }
         .width('100%')

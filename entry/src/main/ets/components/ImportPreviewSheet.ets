@@ -1,4 +1,5 @@
 import { ImportDraft } from '../model/ImportDraft';
+import { ThemePalette } from '../common/Theme';
 
 @Component
 export struct ImportPreviewSheet {
@@ -21,11 +22,11 @@ export struct ImportPreviewSheet {
     Row({ space: 10 }) {
       Text(label)
         .fontSize(13)
-        .fontColor('#999999')
+        .fontColor($r('app.color.text_tertiary'))
         .width(60)
       Text(value)
         .fontSize(14)
-        .fontColor('#333333')
+        .fontColor($r('app.color.text_primary'))
         .layoutWeight(1)
         .maxLines(2)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -41,7 +42,7 @@ export struct ImportPreviewSheet {
       Text(label)
         .fontSize(15)
         .fontWeight(FontWeight.Medium)
-        .fontColor(recommended ? '#FFFFFF' : '#6F4E37')
+        .fontColor(recommended ? '#FFFFFF' : this.themeColor)
       if (recommended) {
         Text('按商品类型推荐')
           .fontSize(10)
@@ -51,8 +52,8 @@ export struct ImportPreviewSheet {
     .width('100%')
     .padding({ top: 14, bottom: 14 })
     .borderRadius(16)
-    .backgroundColor(recommended ? this.themeColor : 'rgba(255,255,255,0.9)')
-    .border({ width: 1, color: recommended ? this.themeColor : 'rgba(111,78,55,0.3)' })
+    .backgroundColor(recommended ? this.themeColor : $r('app.color.card_background'))
+    .border({ width: 1, color: recommended ? this.themeColor : ThemePalette.alpha(this.themeColor, 0.35) })
     .alignItems(HorizontalAlign.Center)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
@@ -65,7 +66,7 @@ export struct ImportPreviewSheet {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('rgba(0,0,0,0.35)')
+        .backgroundColor($r('app.color.mask_color'))
         .onClick(() => {
           this.onClose();
         })
@@ -75,7 +76,7 @@ export struct ImportPreviewSheet {
         Text('🔗 识别到商品链接')
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
           .margin({ top: 22 })
 
         Column({ space: 10 }) {
@@ -86,12 +87,12 @@ export struct ImportPreviewSheet {
         .width('100%')
         .padding(16)
         .borderRadius(16)
-        .backgroundColor('rgba(245,241,236,0.9)')
+        .backgroundColor(ThemePalette.alpha(this.themeColor, 0.10))
 
         if (this.draft.sourceUrl.length > 0) {
           Text(this.draft.sourceUrl)
             .fontSize(10)
-            .fontColor('#AAAAAA')
+            .fontColor($r('app.color.text_hint'))
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .width('100%')
@@ -110,7 +111,7 @@ export struct ImportPreviewSheet {
 
         Text('取消')
           .fontSize(14)
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_tertiary'))
           .padding({ top: 4, bottom: 8 })
           .onClick(() => {
             this.onClose();
@@ -118,7 +119,7 @@ export struct ImportPreviewSheet {
       }
       .width('100%')
       .padding({ left: 20, right: 20, bottom: 20 })
-      .backgroundColor('rgba(255,255,255,0.92)')
+      .backgroundColor($r('app.color.sheet_background'))
       .backgroundBlurStyle(BlurStyle.Thick)
       .borderRadius({ topLeft: 24, topRight: 24 })
       .transition(TransitionEffect.translate({ y: 420 }).animation({ duration: 250, curve: Curve.EaseOut }))

@@ -2,7 +2,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { CoffeeBean } from '../model/Models';
 import { FormParams } from '../model/RouteParams';
 import { ImportDraft, OcrParseResult, CategoryKeywords } from '../model/ImportDraft';
-import { AppKeys } from '../common/Theme';
+import { AppKeys, ThemePalette } from '../common/Theme';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { DateUtil } from '../common/DateUtil';
 import { OcrImport, OcrImportResult } from '../service/OcrImport';
@@ -11,6 +11,7 @@ import { OcrImport, OcrImportResult } from '../service/OcrImport';
 @Component
 struct BeanFormPage {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
+  @StorageProp('isDarkMode') isDarkMode: boolean = false;
   @State variety: string = '';
   @State name: string = '';
   @State vendor: string = '';
@@ -159,7 +160,7 @@ struct BeanFormPage {
   fieldLabel(text: string) {
     Text(text)
       .fontSize(14)
-      .fontColor('#666666')
+      .fontColor($r('app.color.text_secondary'))
       .width(80)
   }
 
@@ -168,7 +169,7 @@ struct BeanFormPage {
       Row({ space: 8 }) {
         Text('‹')
           .fontSize(28)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
           .padding({ left: 4, right: 8 })
           .onClick(() => {
             this.getUIContext().getRouter().back();
@@ -176,7 +177,7 @@ struct BeanFormPage {
         Text(this.editId > 0 ? '编辑咖啡豆' : '记录咖啡豆')
           .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
       }
       .width('100%')
       .padding({ left: 16, right: 16, top: 14, bottom: 10 })
@@ -189,7 +190,7 @@ struct BeanFormPage {
               .fontColor(this.themeColor)
               .width('100%')
               .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-              .backgroundColor('rgba(111,78,55,0.08)')
+              .backgroundColor(ThemePalette.alpha(this.themeColor, 0.10))
               .borderRadius(12)
           }
 
@@ -205,8 +206,8 @@ struct BeanFormPage {
           .height(44)
           .padding({ left: 14, right: 14 })
           .borderRadius(12)
-          .backgroundColor('rgba(255,255,255,0.7)')
-          .border({ width: 1, color: 'rgba(111,78,55,0.25)' })
+          .backgroundColor($r('app.color.card_background'))
+          .border({ width: 1, color: ThemePalette.alpha(this.themeColor, 0.35) })
           .alignItems(VerticalAlign.Center)
           .onClick(() => {
             this.importFromScreenshot();
@@ -216,7 +217,10 @@ struct BeanFormPage {
             this.fieldLabel('品种 *')
             TextInput({ placeholder: '如：埃塞俄比亚·耶加雪菲·日晒', text: this.variety })
               .layoutWeight(1)
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
+              .fontColor($r('app.color.text_primary'))
+              .placeholderColor($r('app.color.text_hint'))
+              .caretColor(this.themeColor)
               .borderRadius(12)
               .onChange((value: string) => {
                 this.variety = value;
@@ -228,7 +232,10 @@ struct BeanFormPage {
             this.fieldLabel('名称')
             TextInput({ placeholder: '如：花魁7.0（选填）', text: this.name })
               .layoutWeight(1)
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
+              .fontColor($r('app.color.text_primary'))
+              .placeholderColor($r('app.color.text_hint'))
+              .caretColor(this.themeColor)
               .borderRadius(12)
               .onChange((value: string) => {
                 this.name = value;
@@ -240,11 +247,11 @@ struct BeanFormPage {
             this.fieldLabel('购买时间')
             Text(DateUtil.formatDate(this.purchaseDate))
               .fontSize(15)
-              .fontColor('#333333')
+              .fontColor($r('app.color.text_primary'))
               .layoutWeight(1)
               .textAlign(TextAlign.End)
               .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
               .borderRadius(12)
               .onClick(() => {
                 this.pickDate();
@@ -256,7 +263,10 @@ struct BeanFormPage {
             this.fieldLabel('价格（元）')
             TextInput({ placeholder: '如：98（选填）', text: this.price })
               .layoutWeight(1)
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
+              .fontColor($r('app.color.text_primary'))
+              .placeholderColor($r('app.color.text_hint'))
+              .caretColor(this.themeColor)
               .borderRadius(12)
               .onChange((value: string) => {
                 this.price = value;
@@ -268,7 +278,10 @@ struct BeanFormPage {
             this.fieldLabel('商家')
             TextInput({ placeholder: '如：某宝·某某咖啡旗舰店（选填）', text: this.vendor })
               .layoutWeight(1)
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
+              .fontColor($r('app.color.text_primary'))
+              .placeholderColor($r('app.color.text_hint'))
+              .caretColor(this.themeColor)
               .borderRadius(12)
               .onChange((value: string) => {
                 this.vendor = value;
@@ -279,10 +292,13 @@ struct BeanFormPage {
           Column({ space: 8 }) {
             Text('风味描述词')
               .fontSize(14)
-              .fontColor('#666666')
+              .fontColor($r('app.color.text_secondary'))
             TextInput({ placeholder: '用逗号分隔，如：花香,柑橘,红茶', text: this.flavorTags })
               .width('100%')
-              .backgroundColor('#FFFFFF')
+              .backgroundColor($r('app.color.input_background'))
+              .fontColor($r('app.color.text_primary'))
+              .placeholderColor($r('app.color.text_hint'))
+              .caretColor(this.themeColor)
               .borderRadius(12)
               .onChange((value: string) => {
                 this.flavorTags = value;
@@ -294,7 +310,7 @@ struct BeanFormPage {
           if (this.errorText.length > 0) {
             Text(this.errorText)
               .fontSize(12)
-              .fontColor('#D9480F')
+              .fontColor($r('app.color.danger_color'))
               .width('100%')
               .textAlign(TextAlign.Center)
           }
@@ -323,6 +339,6 @@ struct BeanFormPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F1EC')
+    .backgroundColor(ThemePalette.page(this.themeColor, this.isDarkMode))
   }
 }

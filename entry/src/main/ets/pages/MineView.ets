@@ -1,6 +1,7 @@
-import { bundleManager } from '@kit.AbilityKit';
+import { common } from '@kit.AbilityKit';
 import { BusinessError } from '@kit.BasicServicesKit';
-import { ThemeColors } from '../common/Theme';
+import { ThemeColors, ThemePalette } from '../common/Theme';
+import { AppInfo, AppInfoData } from '../common/AppInfo';
 import { BrewMethod } from '../model/Models';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
@@ -10,7 +11,7 @@ import { OptionItem, OptionSheet } from '../components/OptionSheet';
 export struct MineView {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
   @State defaultMethod: string = '';
-  @State version: string = '1.0.0';
+  @State appInfo: AppInfoData = new AppInfoData();
   @State showMethodSheet: boolean = false;
   @State autoClipboard: boolean = true;
   private methodOptions: OptionItem[] = [];
@@ -18,6 +19,8 @@ export struct MineView {
   aboutToAppear(): void {
     this.defaultMethod = SettingsStore.getInstance().getDefaultBrewMethod();
     this.autoClipboard = SettingsStore.getInstance().isAutoClipboard();
+    const context = getContext(this) as common.UIAbilityContext;
+    this.appInfo = AppInfo.load(context);
     this.methodOptions = BrewMethod.ALL.map((m: string): OptionItem => {
       const it = new OptionItem();
       it.icon = '☕';
@@ -29,13 +32,6 @@ export struct MineView {
       };
       return it;
     });
-    try {
-      const info: bundleManager.BundleInfo =
-        bundleManager.getBundleInfoForSelfSync(bundleManager.BundleFlag.GET_BUNDLE_INFO_DEFAULT);
-      this.version = info.versionName;
-    } catch (e) {
-      console.error(`get version failed: ${(e as BusinessError).code}`);
-    }
   }
 
   private openMethodSheet(): void {
@@ -77,16 +73,16 @@ export struct MineView {
     Row() {
       Text(label)
         .fontSize(15)
-        .fontColor(danger ? '#D9480F' : '#333333')
+        .fontColor(danger ? $r('app.color.danger_color') : $r('app.color.text_primary'))
         .layoutWeight(1)
       if (value.length > 0) {
         Text(value)
           .fontSize(14)
-          .fontColor('#999999')
+          .fontColor($r('app.color.text_tertiary'))
       }
       Text('›')
         .fontSize(16)
-        .fontColor('#CCCCCC')
+        .fontColor($r('app.color.text_disabled'))
         .margin({ left: 6 })
     }
     .width('100%')
@@ -103,13 +99,13 @@ export struct MineView {
           Column({ space: 6 }) {
             Text('☕')
               .fontSize(52)
-            Text('咖啡志')
+            Text(this.appInfo.name)
               .fontSize(22)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#333333')
-            Text('记录每一杯咖啡的美好')
+              .fontColor($r('app.color.text_primary'))
+            Text(this.appInfo.slogan)
               .fontSize(13)
-              .fontColor('#999999')
+              .fontColor($r('app.color.text_tertiary'))
           }
           .width('100%')
           .margin({ top: 28, bottom: 8 })
@@ -118,7 +114,7 @@ export struct MineView {
             Column({ space: 12 }) {
               Text('主题色')
                 .fontSize(15)
-                .fontColor('#333333')
+                .fontColor($r('app.color.text_primary'))
               Row({ space: 12 }) {
                 ForEach(ThemeColors.PRESETS, (c: string) => {
                   Text(c === this.themeColor ? '✓' : '')
@@ -130,7 +126,7 @@ export struct MineView {
                     .borderRadius(14)
                     .backgroundColor(c)
                     .shadow(this.themeColor === c ?
-                      { radius: 6, color: 'rgba(0,0,0,0.25)' } :
+                      { radius: 6, color: ThemePalette.alpha(c, 0.5) } :
                       { radius: 0, color: 'rgba(0,0,0,0)' })
                     .onClick(() => {
                       SettingsStore.getInstance().setThemeColor(c);
@@ -144,7 +140,7 @@ export struct MineView {
             .alignItems(HorizontalAlign.Start)
 
             Divider()
-              .color('#F0ECE6')
+              .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
 
             this.groupRow('默认冲煮方式', this.defaultMethod, false, (): void => {
@@ -152,22 +148,24 @@ export struct MineView {
             })
 
             Divider()
-              .color('#F0ECE6')
+              .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
 
             Row() {
               Column({ space: 4 }) {
                 Text('自动检测剪贴板')
                   .fontSize(15)
-                  .fontColor('#333333')
+                  .fontColor($r('app.color.text_primary'))
                 Text('复制商品链接后打开咖啡志，自动识别并预填')
                   .fontSize(11)
-                  .fontColor('#AAAAAA')
+                  .fontColor($r('app.color.text_hint'))
               }
               .layoutWeight(1)
               .alignItems(HorizontalAlign.Start)
 
               Toggle({ type: ToggleType.Switch, isOn: this.autoClipboard })
+                .selectedColor(this.themeColor)
+                .switchPointColor('#FFFFFF')
                 .onChange((value: boolean) => {
                   this.autoClipboard = value;
                   SettingsStore.getInstance().setAutoClipboard(value);
@@ -178,7 +176,7 @@ export struct MineView {
             .alignItems(VerticalAlign.Center)
 
             Divider()
-              .color('#F0ECE6')
+              .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
 
             this.groupRow('清空数据', '', true, (): void => {
@@ -186,35 +184,35 @@ export struct MineView {
             })
           }
           .width('100%')
-          .backgroundColor('#FFFFFF')
+          .backgroundColor($r('app.color.card_background'))
           .borderRadius(16)
           .margin({ left: 16, right: 16 })
           .alignItems(HorizontalAlign.Start)
 
           Column() {
-            this.groupRow('版本信息', `v${this.version}`, false, (): void => {})
+            this.groupRow('版本信息', `v${this.appInfo.versionName}`, false, (): void => {})
             Divider()
-              .color('#F0ECE6')
+              .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
             this.groupRow('用户协议', '', false, (): void => {
-              this.getUIContext().getPromptAction().showToast({ message: '开发中，敬请期待' });
+              this.getUIContext().getPromptAction().showToast({ message: this.appInfo.userAgreement });
             })
             Divider()
-              .color('#F0ECE6')
+              .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
             this.groupRow('隐私政策', '', false, (): void => {
-              this.getUIContext().getPromptAction().showToast({ message: '开发中，敬请期待' });
+              this.getUIContext().getPromptAction().showToast({ message: this.appInfo.privacyPolicy });
             })
           }
           .width('100%')
-          .backgroundColor('#FFFFFF')
+          .backgroundColor($r('app.color.card_background'))
           .borderRadius(16)
           .margin({ left: 16, right: 16 })
           .alignItems(HorizontalAlign.Start)
 
           Text('深色模式跟随系统设置')
             .fontSize(12)
-            .fontColor('#BBBBBB')
+            .fontColor($r('app.color.text_disabled'))
             .margin({ top: 6 })
         }
         .width('100%')

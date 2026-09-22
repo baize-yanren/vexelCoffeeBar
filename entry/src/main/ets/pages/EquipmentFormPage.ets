@@ -2,7 +2,7 @@ import { BusinessError } from '@kit.BasicServicesKit';
 import { Equipment, EquipmentType } from '../model/Models';
 import { FormParams } from '../model/RouteParams';
 import { ImportDraft, OcrParseResult, CategoryKeywords } from '../model/ImportDraft';
-import { AppKeys } from '../common/Theme';
+import { AppKeys, ThemePalette } from '../common/Theme';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { DateUtil } from '../common/DateUtil';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
@@ -12,6 +12,7 @@ import { OcrImport, OcrImportResult } from '../service/OcrImport';
 @Component
 struct EquipmentFormPage {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
+  @StorageProp('isDarkMode') isDarkMode: boolean = false;
   @State type: string = '';
   @State brand: string = '';
   @State model: string = '';
@@ -203,7 +204,7 @@ struct EquipmentFormPage {
   fieldLabel(text: string) {
     Text(text)
       .fontSize(14)
-      .fontColor('#666666')
+      .fontColor($r('app.color.text_secondary'))
       .width(80)
   }
 
@@ -213,7 +214,7 @@ struct EquipmentFormPage {
         Row({ space: 8 }) {
           Text('‹')
             .fontSize(28)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .padding({ left: 4, right: 8 })
             .onClick(() => {
               this.getUIContext().getRouter().back();
@@ -221,7 +222,7 @@ struct EquipmentFormPage {
           Text(this.editId > 0 ? '编辑器具' : '记录器具')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
         }
         .width('100%')
         .padding({ left: 16, right: 16, top: 14, bottom: 10 })
@@ -234,7 +235,7 @@ struct EquipmentFormPage {
                 .fontColor(this.themeColor)
                 .width('100%')
                 .padding({ left: 12, right: 12, top: 10, bottom: 10 })
-                .backgroundColor('rgba(111,78,55,0.08)')
+                .backgroundColor(ThemePalette.alpha(this.themeColor, 0.10))
                 .borderRadius(12)
             }
 
@@ -250,8 +251,8 @@ struct EquipmentFormPage {
             .height(44)
             .padding({ left: 14, right: 14 })
             .borderRadius(12)
-            .backgroundColor('rgba(255,255,255,0.7)')
-            .border({ width: 1, color: 'rgba(111,78,55,0.25)' })
+            .backgroundColor($r('app.color.card_background'))
+            .border({ width: 1, color: ThemePalette.alpha(this.themeColor, 0.35) })
             .alignItems(VerticalAlign.Center)
             .onClick(() => {
               this.importFromScreenshot();
@@ -261,11 +262,11 @@ struct EquipmentFormPage {
               this.fieldLabel('种类 *')
               Text(this.type.length > 0 ? this.type : '点击选择')
                 .fontSize(15)
-                .fontColor(this.type.length > 0 ? '#333333' : '#AAAAAA')
+                .fontColor(this.type.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.openTypeSheet();
@@ -277,7 +278,10 @@ struct EquipmentFormPage {
               this.fieldLabel('品牌')
               TextInput({ placeholder: '如：Hario（选填）', text: this.brand })
                 .layoutWeight(1)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.brand = value;
@@ -289,7 +293,10 @@ struct EquipmentFormPage {
               this.fieldLabel('型号')
               TextInput({ placeholder: '如：V60 陶瓷 02（选填）', text: this.model })
                 .layoutWeight(1)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.model = value;
@@ -301,11 +308,11 @@ struct EquipmentFormPage {
               this.fieldLabel('购买时间')
               Text(DateUtil.formatDate(this.purchaseDate))
                 .fontSize(15)
-                .fontColor('#333333')
+                .fontColor($r('app.color.text_primary'))
                 .layoutWeight(1)
                 .textAlign(TextAlign.End)
                 .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
                 .borderRadius(12)
                 .onClick(() => {
                   this.pickDate();
@@ -317,7 +324,10 @@ struct EquipmentFormPage {
               this.fieldLabel('价格（元）')
               TextInput({ placeholder: '如：68（选填）', text: this.price })
                 .layoutWeight(1)
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.price = value;
@@ -328,10 +338,13 @@ struct EquipmentFormPage {
             Column({ space: 8 }) {
               Text('备注')
                 .fontSize(14)
-                .fontColor('#666666')
+                .fontColor($r('app.color.text_secondary'))
               TextInput({ placeholder: '其他说明（选填）', text: this.notes })
                 .width('100%')
-                .backgroundColor('#FFFFFF')
+                .backgroundColor($r('app.color.input_background'))
+                .fontColor($r('app.color.text_primary'))
+                .placeholderColor($r('app.color.text_hint'))
+                .caretColor(this.themeColor)
                 .borderRadius(12)
                 .onChange((value: string) => {
                   this.notes = value;
@@ -343,7 +356,7 @@ struct EquipmentFormPage {
             if (this.errorText.length > 0) {
               Text(this.errorText)
                 .fontSize(12)
-                .fontColor('#D9480F')
+                .fontColor($r('app.color.danger_color'))
                 .width('100%')
                 .textAlign(TextAlign.Center)
             }
@@ -385,6 +398,6 @@ struct EquipmentFormPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F5F1EC')
+    .backgroundColor(ThemePalette.page(this.themeColor, this.isDarkMode))
   }
 }

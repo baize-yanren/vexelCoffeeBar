@@ -4,10 +4,12 @@ import { FormParams } from '../model/RouteParams';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { BeanCard } from '../components/BeanCard';
 import { EquipmentCard } from '../components/EquipmentCard';
+import { ThemePalette } from '../common/Theme';
 
 @Component
 export struct LibraryView {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
+  @StorageProp('isDarkMode') isDarkMode: boolean = false;
   @StorageLink('dataVersion') @Watch('onDataChanged') dataVersion: number = 0;
   @State beanMode: boolean = true;
   @State beans: CoffeeBean[] = [];
@@ -94,7 +96,7 @@ export struct LibraryView {
         .fontSize(48)
       Text(text)
         .fontSize(13)
-        .fontColor('#AAAAAA')
+        .fontColor($r('app.color.text_hint'))
         .textAlign(TextAlign.Center)
     }
     .width('100%')
@@ -108,12 +110,12 @@ export struct LibraryView {
         Text('库藏')
           .fontSize(24)
           .fontWeight(FontWeight.Bold)
-          .fontColor('#333333')
+          .fontColor($r('app.color.text_primary'))
           .layoutWeight(1)
         Row() {
           Text('咖啡豆')
             .fontSize(13)
-            .fontColor(this.beanMode ? '#FFFFFF' : '#666666')
+            .fontColor(this.beanMode ? '#FFFFFF' : $r('app.color.text_secondary'))
             .padding({ left: 16, right: 16, top: 7, bottom: 7 })
             .backgroundColor(this.beanMode ? this.themeColor : Color.Transparent)
             .borderRadius(16)
@@ -122,7 +124,7 @@ export struct LibraryView {
             })
           Text('器具')
             .fontSize(13)
-            .fontColor(!this.beanMode ? '#FFFFFF' : '#666666')
+            .fontColor(!this.beanMode ? '#FFFFFF' : $r('app.color.text_secondary'))
             .padding({ left: 16, right: 16, top: 7, bottom: 7 })
             .backgroundColor(!this.beanMode ? this.themeColor : Color.Transparent)
             .borderRadius(16)
@@ -130,7 +132,7 @@ export struct LibraryView {
               this.beanMode = false;
             })
         }
-        .backgroundColor('#E8E1D8')
+        .backgroundColor(ThemePalette.tint(this.themeColor, this.isDarkMode, 0.14))
         .borderRadius(18)
         .padding(3)
       }

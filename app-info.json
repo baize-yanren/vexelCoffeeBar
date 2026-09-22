@@ -1,0 +1,12 @@
+{
+  "name": "Vexel Coffee Bar",
+  "bundleName": "com.example.vexelcoffeebar",
+  "vendor": "example",
+  "versionName": "0.1.0",
+  "versionCode": 1000000,
+  "buildVersion": "1",
+  "slogan": "记录每一杯咖啡的美好",
+  "description": "咖啡豆、器具与冲煮记录工具",
+  "userAgreement": "开发中，敬请期待",
+  "privacyPolicy": "开发中，敬请期待"
+}

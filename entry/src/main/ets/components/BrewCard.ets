@@ -49,20 +49,20 @@ export struct BrewCard {
             .borderRadius(10)
           Text(this.record.beanName.length > 0 ? this.record.beanName : '未关联咖啡豆')
             .fontSize(13)
-            .fontColor('#555555')
+            .fontColor($r('app.color.text_secondary'))
             .maxLines(1)
             .layoutWeight(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
           Text(DateUtil.formatDateTime(this.record.brewDate))
             .fontSize(11)
-            .fontColor('#AAAAAA')
+            .fontColor($r('app.color.text_hint'))
         }
         .width('100%')
 
         if (this.summaryParts(this.record).length > 0) {
           Text(this.summaryParts(this.record).join(' · '))
             .fontSize(13)
-            .fontColor('#666666')
+            .fontColor($r('app.color.text_secondary'))
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
@@ -76,7 +76,7 @@ export struct BrewCard {
         if (this.record.notes.length > 0) {
           Text(this.record.notes)
             .fontSize(12)
-            .fontColor('#888888')
+            .fontColor($r('app.color.text_tertiary'))
             .maxLines(2)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
@@ -89,7 +89,7 @@ export struct BrewCard {
 
       Text('✕')
         .fontSize(15)
-        .fontColor('#CCCCCC')
+        .fontColor($r('app.color.text_disabled'))
         .padding(6)
         .onClick(() => {
           this.onDelete(this.record);
@@ -97,7 +97,7 @@ export struct BrewCard {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.card_background'))
     .borderRadius(16)
     .alignItems(VerticalAlign.Top)
   }

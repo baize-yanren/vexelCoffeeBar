@@ -15,7 +15,7 @@ export struct OptionSheet {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('rgba(0,0,0,0.35)')
+        .backgroundColor($r('app.color.mask_color'))
         .onClick(() => {
           this.onClose();
         })
@@ -25,7 +25,7 @@ export struct OptionSheet {
         Text(this.title)
           .fontSize(15)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#8C8C8C')
+          .fontColor($r('app.color.text_tertiary'))
           .margin({ top: 18, bottom: 4 })
 
         ForEach(this.options, (opt: OptionItem) => {
@@ -36,11 +36,11 @@ export struct OptionSheet {
               .textAlign(TextAlign.Center)
             Text(opt.label)
               .fontSize(16)
-              .fontColor('#333333')
+              .fontColor($r('app.color.text_primary'))
               .layoutWeight(1)
             Text('›')
               .fontSize(18)
-              .fontColor('#BBBBBB')
+              .fontColor($r('app.color.text_disabled'))
           }
           .width('100%')
           .height(52)
@@ -54,7 +54,7 @@ export struct OptionSheet {
       }
       .width('100%')
       .padding({ bottom: 34 })
-      .backgroundColor('rgba(255,255,255,0.86)')
+      .backgroundColor($r('app.color.sheet_background'))
       .backgroundBlurStyle(BlurStyle.Thick)
       .borderRadius({ topLeft: 24, topRight: 24 })
       .transition(TransitionEffect.translate({ y: 420 }).animation({ duration: 250, curve: Curve.EaseOut }))

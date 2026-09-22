@@ -15,7 +15,7 @@ export struct EquipmentCard {
           Text(this.equipment.type)
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#333333')
+            .fontColor($r('app.color.text_primary'))
             .maxLines(1)
           Text(DateUtil.formatPrice(this.equipment.price))
             .fontSize(16)
@@ -30,18 +30,18 @@ export struct EquipmentCard {
             `${this.equipment.brand} · ${this.equipment.model}` :
             (this.equipment.brand.length > 0 ? this.equipment.brand : this.equipment.model))
             .fontSize(13)
-            .fontColor('#666666')
+            .fontColor($r('app.color.text_secondary'))
             .maxLines(1)
         }
 
         Row({ space: 14 }) {
           Text(DateUtil.formatDate(this.equipment.purchaseDate))
             .fontSize(12)
-            .fontColor('#999999')
+            .fontColor($r('app.color.text_tertiary'))
           if (this.equipment.notes.length > 0) {
             Text(this.equipment.notes)
               .fontSize(12)
-              .fontColor('#999999')
+              .fontColor($r('app.color.text_tertiary'))
               .layoutWeight(1)
               .maxLines(1)
               .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -57,7 +57,7 @@ export struct EquipmentCard {
 
       Text('✕')
         .fontSize(15)
-        .fontColor('#CCCCCC')
+        .fontColor($r('app.color.text_disabled'))
         .padding(6)
         .onClick(() => {
           this.onDelete(this.equipment);
@@ -65,7 +65,7 @@ export struct EquipmentCard {
     }
     .width('100%')
     .padding(14)
-    .backgroundColor('#FFFFFF')
+    .backgroundColor($r('app.color.card_background'))
     .borderRadius(16)
     .alignItems(VerticalAlign.Top)
   }
