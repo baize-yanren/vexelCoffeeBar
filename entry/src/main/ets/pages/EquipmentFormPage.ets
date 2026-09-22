@@ -1,5 +1,5 @@
 import { BusinessError } from '@kit.BasicServicesKit';
-import { Equipment, EquipmentType } from '../model/Models';
+import { Equipment, EquipmentType, ItemCondition } from '../model/Models';
 import { FormParams } from '../model/RouteParams';
 import { ImportDraft, OcrParseResult, CategoryKeywords } from '../model/ImportDraft';
 import { AppKeys, ThemePalette } from '../common/Theme';
@@ -18,13 +18,17 @@ struct EquipmentFormPage {
   @State model: string = '';
   @State price: string = '';
   @State notes: string = '';
+  @State accessories: string = '';
+  @State conditionState: string = '';
   @State purchaseDate: number = Date.now();
   @State errorText: string = '';
   @State showTypeSheet: boolean = false;
+  @State showConditionSheet: boolean = false;
   @State importing: boolean = false;
   @State importedTip: string = '';
   private editId: number = -1;
   private typeOptions: OptionItem[] = [];
+  private conditionOptions: OptionItem[] = [];
   private static readonly MODEL_RE: RegExp = new RegExp('[A-Za-z]+[-]?[0-9][A-Za-z0-9-]*');
 
   aboutToAppear(): void {
@@ -34,6 +38,15 @@ struct EquipmentFormPage {
       it.label = t;
       it.action = (): void => {
         this.type = t;
+      };
+      return it;
+    });
+    this.conditionOptions = ItemCondition.ALL.map((t: string): OptionItem => {
+      const it = new OptionItem();
+      it.icon = t === '全新' ? '✨' : '♻️';
+      it.label = t;
+      it.action = (): void => {
+        this.conditionState = t;
       };
       return it;
     });
@@ -49,6 +62,8 @@ struct EquipmentFormPage {
           this.model = found.model;
           this.price = found.price > 0 ? `${found.price}` : '';
           this.notes = found.notes;
+          this.accessories = found.accessories;
+          this.conditionState = found.conditionState;
           this.purchaseDate = found.purchaseDate > 0 ? found.purchaseDate : Date.now();
         }
       }).catch((e: BusinessError) => {
@@ -145,15 +160,13 @@ struct EquipmentFormPage {
     return count;
   }
 
-  private openTypeSheet(): void {
+  private toggleSheet(key: string, show: boolean): void {
     this.getUIContext().animateTo({ duration: 250, curve: Curve.EaseOut }, () => {
-      this.showTypeSheet = true;
-    });
-  }
-
-  private closeTypeSheet(): void {
-    this.getUIContext().animateTo({ duration: 250, curve: Curve.EaseOut }, () => {
-      this.showTypeSheet = false;
+      if (key === 'type') {
+        this.showTypeSheet = show;
+      } else if (key === 'condition') {
+        this.showConditionSheet = show;
+      }
     });
   }
 
@@ -186,6 +199,8 @@ struct EquipmentFormPage {
     }
     const e: Equipment = Equipment.of(this.type, this.brand.trim(), this.model.trim(),
       this.purchaseDate, priceNum, this.notes.trim());
+    e.accessories = this.accessories.trim();
+    e.conditionState = this.conditionState;
     e.id = this.editId;
     const task: Promise<number> = this.editId > 0 ?
       CoffeeDb.getInstance().updateEquipment(e) :
@@ -205,7 +220,44 @@ struct EquipmentFormPage {
     Text(text)
       .fontSize(14)
       .fontColor($r('app.color.text_secondary'))
-      .width(80)
+      .constraintSize({ minWidth: 88 })
+  }
+
+  @Builder
+  inputRow(label: string, placeholder: string, text: string, onChange: (v: string) => void) {
+    Row({ space: 10 }) {
+      this.fieldLabel(label)
+      TextInput({ placeholder: placeholder, text: text })
+        .layoutWeight(1)
+        .backgroundColor($r('app.color.input_background'))
+        .fontColor($r('app.color.text_primary'))
+        .placeholderColor($r('app.color.text_hint'))
+        .caretColor(this.themeColor)
+        .borderRadius(12)
+        .onChange((value: string) => {
+          onChange(value);
+        })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  selectRow(label: string, value: string, placeholder: string, onTap: () => void) {
+    Row({ space: 10 }) {
+      this.fieldLabel(label)
+      Text(value.length > 0 ? value : placeholder)
+        .fontSize(15)
+        .fontColor(value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .layoutWeight(1)
+        .textAlign(TextAlign.End)
+        .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+        .backgroundColor($r('app.color.input_background'))
+        .borderRadius(12)
+        .onClick(() => {
+          onTap();
+        })
+    }
+    .width('100%')
   }
 
   build() {
@@ -258,51 +310,25 @@ struct EquipmentFormPage {
               this.importFromScreenshot();
             })
 
-            Row({ space: 10 }) {
-              this.fieldLabel('种类 *')
-              Text(this.type.length > 0 ? this.type : '点击选择')
-                .fontSize(15)
-                .fontColor(this.type.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
-                .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor($r('app.color.input_background'))
-                .borderRadius(12)
-                .onClick(() => {
-                  this.openTypeSheet();
-                })
-            }
-            .width('100%')
+            this.selectRow('种类 *', this.type, '点击选择', (): void => {
+              this.toggleSheet('type', true);
+            })
 
-            Row({ space: 10 }) {
-              this.fieldLabel('品牌')
-              TextInput({ placeholder: '如：Hario（选填）', text: this.brand })
-                .layoutWeight(1)
-                .backgroundColor($r('app.color.input_background'))
-                .fontColor($r('app.color.text_primary'))
-                .placeholderColor($r('app.color.text_hint'))
-                .caretColor(this.themeColor)
-                .borderRadius(12)
-                .onChange((value: string) => {
-                  this.brand = value;
-                })
-            }
-            .width('100%')
+            this.inputRow('品牌', '如：Hario（选填）', this.brand, (v: string): void => {
+              this.brand = v;
+            })
 
-            Row({ space: 10 }) {
-              this.fieldLabel('型号')
-              TextInput({ placeholder: '如：V60 陶瓷 02（选填）', text: this.model })
-                .layoutWeight(1)
-                .backgroundColor($r('app.color.input_background'))
-                .fontColor($r('app.color.text_primary'))
-                .placeholderColor($r('app.color.text_hint'))
-                .caretColor(this.themeColor)
-                .borderRadius(12)
-                .onChange((value: string) => {
-                  this.model = value;
-                })
-            }
-            .width('100%')
+            this.inputRow('型号', '如：V60 陶瓷 02（选填）', this.model, (v: string): void => {
+              this.model = v;
+            })
+
+            this.selectRow('新旧', this.conditionState, '点击选择（选填）', (): void => {
+              this.toggleSheet('condition', true);
+            })
+
+            this.inputRow('配件', '如：原装滤网、量勺（选填）', this.accessories, (v: string): void => {
+              this.accessories = v;
+            })
 
             Row({ space: 10 }) {
               this.fieldLabel('购买时间')
@@ -320,20 +346,9 @@ struct EquipmentFormPage {
             }
             .width('100%')
 
-            Row({ space: 10 }) {
-              this.fieldLabel('价格（元）')
-              TextInput({ placeholder: '如：68（选填）', text: this.price })
-                .layoutWeight(1)
-                .backgroundColor($r('app.color.input_background'))
-                .fontColor($r('app.color.text_primary'))
-                .placeholderColor($r('app.color.text_hint'))
-                .caretColor(this.themeColor)
-                .borderRadius(12)
-                .onChange((value: string) => {
-                  this.price = value;
-                })
-            }
-            .width('100%')
+            this.inputRow('价格（元）', '如：68（选填）', this.price, (v: string): void => {
+              this.price = v;
+            })
 
             Column({ space: 8 }) {
               Text('备注')
@@ -391,7 +406,17 @@ struct EquipmentFormPage {
           title: '器具种类',
           options: this.typeOptions,
           onClose: (): void => {
-            this.closeTypeSheet();
+            this.toggleSheet('type', false);
+          }
+        })
+      }
+
+      if (this.showConditionSheet) {
+        OptionSheet({
+          title: '新旧',
+          options: this.conditionOptions,
+          onClose: (): void => {
+            this.toggleSheet('condition', false);
           }
         })
       }

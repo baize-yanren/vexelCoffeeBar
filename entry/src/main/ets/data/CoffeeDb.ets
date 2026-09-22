@@ -37,6 +37,12 @@ export class CoffeeDb {
             price REAL NOT NULL DEFAULT 0,
             vendor TEXT NOT NULL DEFAULT '',
             flavor_tags TEXT NOT NULL DEFAULT '',
+            origin TEXT NOT NULL DEFAULT '',
+            weight REAL NOT NULL DEFAULT 0,
+            roast_level TEXT NOT NULL DEFAULT '',
+            roast_date INTEGER NOT NULL DEFAULT 0,
+            process_method TEXT NOT NULL DEFAULT '',
+            shelf_life INTEGER NOT NULL DEFAULT 0,
             created_at INTEGER NOT NULL DEFAULT 0)`,
           `CREATE TABLE IF NOT EXISTS equipments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,6 +52,8 @@ export class CoffeeDb {
             purchase_date INTEGER NOT NULL DEFAULT 0,
             price REAL NOT NULL DEFAULT 0,
             notes TEXT NOT NULL DEFAULT '',
+            accessories TEXT NOT NULL DEFAULT '',
+            condition_state TEXT NOT NULL DEFAULT '',
             created_at INTEGER NOT NULL DEFAULT 0)`,
           `CREATE TABLE IF NOT EXISTS brew_records (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,11 +68,31 @@ export class CoffeeDb {
             brew_duration INTEGER NOT NULL DEFAULT 0,
             rating INTEGER NOT NULL DEFAULT 0,
             notes TEXT NOT NULL DEFAULT '',
+            extra TEXT NOT NULL DEFAULT '',
             created_at INTEGER NOT NULL DEFAULT 0)`
+        ];
+        // 旧版本升级迁移：列已存在时 ALTER 会报错，逐条容忍失败
+        const migrations: string[] = [
+          `ALTER TABLE coffee_beans ADD COLUMN origin TEXT NOT NULL DEFAULT ''`,
+          `ALTER TABLE coffee_beans ADD COLUMN weight REAL NOT NULL DEFAULT 0`,
+          `ALTER TABLE coffee_beans ADD COLUMN roast_level TEXT NOT NULL DEFAULT ''`,
+          `ALTER TABLE coffee_beans ADD COLUMN roast_date INTEGER NOT NULL DEFAULT 0`,
+          `ALTER TABLE coffee_beans ADD COLUMN process_method TEXT NOT NULL DEFAULT ''`,
+          `ALTER TABLE coffee_beans ADD COLUMN shelf_life INTEGER NOT NULL DEFAULT 0`,
+          `ALTER TABLE equipments ADD COLUMN accessories TEXT NOT NULL DEFAULT ''`,
+          `ALTER TABLE equipments ADD COLUMN condition_state TEXT NOT NULL DEFAULT ''`,
+          `ALTER TABLE brew_records ADD COLUMN extra TEXT NOT NULL DEFAULT ''`
         ];
         const tasks: Array<Promise<void>> = [];
         for (let i = 0; i < ddl.length; i++) {
           tasks.push(store.executeSql(ddl[i]));
+        }
+        for (let i = 0; i < migrations.length; i++) {
+          const m: string = migrations[i];
+          tasks.push(store.executeSql(m).then((): void => {
+          }).catch((e: BusinessError): void => {
+            console.info(`${TAG} migration skipped: ${e.message}`);
+          }));
         }
         Promise.all(tasks).then(() => {
           resolve();
@@ -101,6 +129,12 @@ export class CoffeeDb {
       'price': b.price,
       'vendor': b.vendor,
       'flavor_tags': b.flavorTags,
+      'origin': b.origin,
+      'weight': b.weight,
+      'roast_level': b.roastLevel,
+      'roast_date': b.roastDate,
+      'process_method': b.processMethod,
+      'shelf_life': b.shelfLife,
       'created_at': Date.now()
     };
     return db.insert('coffee_beans', v);
@@ -114,7 +148,13 @@ export class CoffeeDb {
       'purchase_date': b.purchaseDate,
       'price': b.price,
       'vendor': b.vendor,
-      'flavor_tags': b.flavorTags
+      'flavor_tags': b.flavorTags,
+      'origin': b.origin,
+      'weight': b.weight,
+      'roast_level': b.roastLevel,
+      'roast_date': b.roastDate,
+      'process_method': b.processMethod,
+      'shelf_life': b.shelfLife
     };
     const pred = new relationalStore.RdbPredicates('coffee_beans').equalTo('id', b.id);
     return db.update(v, pred);
@@ -140,6 +180,12 @@ export class CoffeeDb {
       b.price = rs.getDouble(rs.getColumnIndex('price'));
       b.vendor = rs.getString(rs.getColumnIndex('vendor'));
       b.flavorTags = rs.getString(rs.getColumnIndex('flavor_tags'));
+      b.origin = rs.getString(rs.getColumnIndex('origin'));
+      b.weight = rs.getDouble(rs.getColumnIndex('weight'));
+      b.roastLevel = rs.getString(rs.getColumnIndex('roast_level'));
+      b.roastDate = rs.getLong(rs.getColumnIndex('roast_date'));
+      b.processMethod = rs.getString(rs.getColumnIndex('process_method'));
+      b.shelfLife = rs.getLong(rs.getColumnIndex('shelf_life'));
       b.createdAt = rs.getLong(rs.getColumnIndex('created_at'));
       result.push(b);
     }
@@ -158,6 +204,8 @@ export class CoffeeDb {
       'purchase_date': e.purchaseDate,
       'price': e.price,
       'notes': e.notes,
+      'accessories': e.accessories,
+      'condition_state': e.conditionState,
       'created_at': Date.now()
     };
     return db.insert('equipments', v);
@@ -171,7 +219,9 @@ export class CoffeeDb {
       'model': e.model,
       'purchase_date': e.purchaseDate,
       'price': e.price,
-      'notes': e.notes
+      'notes': e.notes,
+      'accessories': e.accessories,
+      'condition_state': e.conditionState
     };
     const pred = new relationalStore.RdbPredicates('equipments').equalTo('id', e.id);
     return db.update(v, pred);
@@ -197,6 +247,8 @@ export class CoffeeDb {
       e.purchaseDate = rs.getLong(rs.getColumnIndex('purchase_date'));
       e.price = rs.getDouble(rs.getColumnIndex('price'));
       e.notes = rs.getString(rs.getColumnIndex('notes'));
+      e.accessories = rs.getString(rs.getColumnIndex('accessories'));
+      e.conditionState = rs.getString(rs.getColumnIndex('condition_state'));
       e.createdAt = rs.getLong(rs.getColumnIndex('created_at'));
       result.push(e);
     }
@@ -220,6 +272,7 @@ export class CoffeeDb {
       'brew_duration': r.brewDuration,
       'rating': r.rating,
       'notes': r.notes,
+      'extra': r.toExtraJson(),
       'created_at': Date.now()
     };
     return db.insert('brew_records', v);
@@ -238,7 +291,8 @@ export class CoffeeDb {
       'grind_size': r.grindSize,
       'brew_duration': r.brewDuration,
       'rating': r.rating,
-      'notes': r.notes
+      'notes': r.notes,
+      'extra': r.toExtraJson()
     };
     const pred = new relationalStore.RdbPredicates('brew_records').equalTo('id', r.id);
     return db.update(v, pred);
@@ -269,6 +323,7 @@ export class CoffeeDb {
       r.brewDuration = rs.getLong(rs.getColumnIndex('brew_duration'));
       r.rating = rs.getLong(rs.getColumnIndex('rating'));
       r.notes = rs.getString(rs.getColumnIndex('notes'));
+      r.applyExtraJson(rs.getString(rs.getColumnIndex('extra')));
       r.createdAt = rs.getLong(rs.getColumnIndex('created_at'));
       result.push(r);
     }

@@ -1,5 +1,6 @@
 import { Equipment } from '../model/Models';
 import { DateUtil } from '../common/DateUtil';
+import { ThemePalette } from '../common/Theme';
 
 @Component
 export struct EquipmentCard {
@@ -17,6 +18,14 @@ export struct EquipmentCard {
             .fontWeight(FontWeight.Bold)
             .fontColor($r('app.color.text_primary'))
             .maxLines(1)
+          if (this.equipment.conditionState.length > 0) {
+            Text(this.equipment.conditionState)
+              .fontSize(11)
+              .fontColor(this.themeColor)
+              .backgroundColor(ThemePalette.alpha(this.themeColor, 0.12))
+              .padding({ left: 8, right: 8, top: 2, bottom: 2 })
+              .borderRadius(10)
+          }
           Text(DateUtil.formatPrice(this.equipment.price))
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
@@ -32,6 +41,15 @@ export struct EquipmentCard {
             .fontSize(13)
             .fontColor($r('app.color.text_secondary'))
             .maxLines(1)
+        }
+
+        if (this.equipment.accessories.length > 0) {
+          Text(`配件：${this.equipment.accessories}`)
+            .fontSize(12)
+            .fontColor($r('app.color.text_tertiary'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .width('100%')
         }
 
         Row({ space: 14 }) {

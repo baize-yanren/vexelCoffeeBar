@@ -1,5 +1,5 @@
 import { BusinessError } from '@kit.BasicServicesKit';
-import { BrewRecord, BrewMethod, BrewFieldConfig, GrindSize, CoffeeBean } from '../model/Models';
+import { BrewRecord, BrewMethod, BrewFieldConfig, GrindSize, HeatLevel, CoffeeBean } from '../model/Models';
 import { FormParams } from '../model/RouteParams';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
@@ -21,6 +21,18 @@ struct BrewFormPage {
   @State waterTemp: string = '';
   @State grindSize: string = '';
   @State brewDuration: string = '';
+  @State yieldAmount: string = '';
+  @State heatLevel: string = '';
+  @State pourCount: string = '';
+  @State pour1Water: string = '';
+  @State pour1Time: string = '';
+  @State pour2Water: string = '';
+  @State pour2Time: string = '';
+  @State bloomWater: string = '';
+  @State bloomTime: string = '';
+  @State pressure: string = '';
+  @State steepValue: string = '';
+  @State pressSeconds: string = '';
   @State rating: number = 0;
   @State notes: string = '';
   @State brewDate: number = Date.now();
@@ -28,9 +40,11 @@ struct BrewFormPage {
   @State showMethodSheet: boolean = false;
   @State showBeanSheet: boolean = false;
   @State showGrindSheet: boolean = false;
+  @State showHeatSheet: boolean = false;
   private editId: number = -1;
   private methodOptions: OptionItem[] = [];
   private grindOptions: OptionItem[] = [];
+  private heatOptions: OptionItem[] = [];
   private beanOptions: OptionItem[] = [];
   private beans: CoffeeBean[] = [];
 
@@ -50,6 +64,15 @@ struct BrewFormPage {
       it.label = g;
       it.action = (): void => {
         this.grindSize = g;
+      };
+      return it;
+    });
+    this.heatOptions = HeatLevel.ALL.map((h: string): OptionItem => {
+      const it = new OptionItem();
+      it.icon = '🔥';
+      it.label = h;
+      it.action = (): void => {
+        this.heatLevel = h;
       };
       return it;
     });
@@ -77,6 +100,19 @@ struct BrewFormPage {
           this.waterTemp = found.waterTemp > 0 ? `${found.waterTemp}` : '';
           this.grindSize = found.grindSize;
           this.brewDuration = found.brewDuration > 0 ? `${found.brewDuration}` : '';
+          this.yieldAmount = found.yieldAmount > 0 ? `${found.yieldAmount}` : '';
+          this.heatLevel = found.heatLevel;
+          this.pourCount = found.pourCount > 0 ? `${found.pourCount}` : '';
+          this.pour1Water = found.pour1Water > 0 ? `${found.pour1Water}` : '';
+          this.pour1Time = found.pour1Time > 0 ? `${found.pour1Time}` : '';
+          this.pour2Water = found.pour2Water > 0 ? `${found.pour2Water}` : '';
+          this.pour2Time = found.pour2Time > 0 ? `${found.pour2Time}` : '';
+          this.bloomWater = found.bloomWater > 0 ? `${found.bloomWater}` : '';
+          this.bloomTime = found.bloomTime > 0 ? `${found.bloomTime}` : '';
+          this.pressure = found.pressure > 0 ? `${found.pressure}` : '';
+          this.steepValue = found.steepHours > 0 ? `${found.steepHours}` :
+            (found.steepMinutes > 0 ? `${found.steepMinutes}` : '');
+          this.pressSeconds = found.pressSeconds > 0 ? `${found.pressSeconds}` : '';
           this.rating = found.rating;
           this.notes = found.notes;
           this.brewDate = found.brewDate > 0 ? found.brewDate : Date.now();
@@ -126,6 +162,8 @@ struct BrewFormPage {
         this.showBeanSheet = true;
       } else if (key === 'grind') {
         this.showGrindSheet = true;
+      } else if (key === 'heat') {
+        this.showHeatSheet = true;
       }
     });
   }
@@ -138,6 +176,8 @@ struct BrewFormPage {
         this.showBeanSheet = false;
       } else if (key === 'grind') {
         this.showGrindSheet = false;
+      } else if (key === 'heat') {
+        this.showHeatSheet = false;
       }
     });
   }
@@ -156,6 +196,9 @@ struct BrewFormPage {
   }
 
   private durationHint(): string {
+    if (!this.fieldConfig.showDuration) {
+      return '';
+    }
     const t: string = this.brewDuration.trim();
     if (t.length === 0) {
       return '';
@@ -167,30 +210,117 @@ struct BrewFormPage {
     return `= ${DateUtil.formatDuration(n)}`;
   }
 
+  private parseNum(s: string, label: string): number {
+    const t: string = s.trim();
+    if (t.length === 0) {
+      return 0;
+    }
+    const n: number = Number(t);
+    if (Number.isNaN(n) || n < 0) {
+      this.errorText = `${label}格式不正确`;
+      return -1;
+    }
+    return n;
+  }
+
   private save(): void {
     if (this.method.length === 0) {
       this.errorText = '请选择冲煮方式';
       return;
     }
+    const cfg: BrewFieldConfig = this.fieldConfig;
     let doseNum: number = 0;
     let waterNum: number = 0;
     let tempNum: number = 0;
     let durationNum: number = 0;
+    let yieldNum: number = 0;
+    let pourCountNum: number = 0;
+    let pour1WaterNum: number = 0;
+    let pour1TimeNum: number = 0;
+    let pour2WaterNum: number = 0;
+    let pour2TimeNum: number = 0;
+    let bloomWaterNum: number = 0;
+    let bloomTimeNum: number = 0;
+    let pressureNum: number = 0;
+    let steepNum: number = 0;
+    let pressNum: number = 0;
     doseNum = this.parseNum(this.dose, '粉量');
     if (doseNum < 0) {
       return;
     }
-    waterNum = this.parseNum(this.waterAmount, '水量');
-    if (waterNum < 0) {
-      return;
+    if (cfg.showWater) {
+      waterNum = this.parseNum(this.waterAmount, '水量');
+      if (waterNum < 0) {
+        return;
+      }
     }
-    tempNum = this.parseNum(this.waterTemp, '水温');
-    if (tempNum < 0) {
-      return;
+    if (cfg.showTemp) {
+      tempNum = this.parseNum(this.waterTemp, '水温');
+      if (tempNum < 0) {
+        return;
+      }
     }
-    durationNum = this.parseNum(this.brewDuration, this.fieldConfig.durationLabel);
-    if (durationNum < 0) {
-      return;
+    if (cfg.showDuration) {
+      durationNum = this.parseNum(this.brewDuration, cfg.durationLabel);
+      if (durationNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showYield) {
+      yieldNum = this.parseNum(this.yieldAmount, cfg.yieldLabel);
+      if (yieldNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showPourPlan) {
+      pourCountNum = this.parseNum(this.pourCount, '注水次数');
+      if (pourCountNum < 0) {
+        return;
+      }
+      pour1WaterNum = this.parseNum(this.pour1Water, '第一次注水量');
+      if (pour1WaterNum < 0) {
+        return;
+      }
+      pour1TimeNum = this.parseNum(this.pour1Time, '第一次注水时间');
+      if (pour1TimeNum < 0) {
+        return;
+      }
+      pour2WaterNum = this.parseNum(this.pour2Water, '第二次注水量');
+      if (pour2WaterNum < 0) {
+        return;
+      }
+      pour2TimeNum = this.parseNum(this.pour2Time, '第二次注水时间');
+      if (pour2TimeNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showBloom) {
+      bloomWaterNum = this.parseNum(this.bloomWater, '闷蒸水量');
+      if (bloomWaterNum < 0) {
+        return;
+      }
+      bloomTimeNum = this.parseNum(this.bloomTime, '闷蒸时长');
+      if (bloomTimeNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showPressure) {
+      pressureNum = this.parseNum(this.pressure, '压力');
+      if (pressureNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showSteep) {
+      steepNum = this.parseNum(this.steepValue, cfg.steepLabel);
+      if (steepNum < 0) {
+        return;
+      }
+    }
+    if (cfg.showPressTime) {
+      pressNum = this.parseNum(this.pressSeconds, '压下时长');
+      if (pressNum < 0) {
+        return;
+      }
     }
     const r: BrewRecord = BrewRecord.of(this.brewDate, this.method);
     r.beanId = this.beanId;
@@ -200,6 +330,22 @@ struct BrewFormPage {
     r.waterTemp = tempNum;
     r.grindSize = this.grindSize;
     r.brewDuration = durationNum;
+    r.yieldAmount = yieldNum;
+    r.heatLevel = this.heatLevel;
+    r.pourCount = pourCountNum;
+    r.pour1Water = pour1WaterNum;
+    r.pour1Time = pour1TimeNum;
+    r.pour2Water = pour2WaterNum;
+    r.pour2Time = pour2TimeNum;
+    r.bloomWater = bloomWaterNum;
+    r.bloomTime = bloomTimeNum;
+    r.pressure = pressureNum;
+    if (this.method === BrewMethod.COLD_BREW) {
+      r.steepHours = steepNum;
+    } else {
+      r.steepMinutes = steepNum;
+    }
+    r.pressSeconds = pressNum;
     r.rating = this.rating;
     r.notes = this.notes.trim();
     r.id = this.editId;
@@ -216,25 +362,49 @@ struct BrewFormPage {
     });
   }
 
-  private parseNum(s: string, label: string): number {
-    const t: string = s.trim();
-    if (t.length === 0) {
-      return 0;
-    }
-    const n: number = Number(t);
-    if (Number.isNaN(n) || n < 0) {
-      this.errorText = `${label}格式不正确`;
-      return -1;
-    }
-    return n;
-  }
-
   @Builder
   fieldLabel(text: string) {
     Text(text)
       .fontSize(14)
       .fontColor($r('app.color.text_secondary'))
-      .width(80)
+      .constraintSize({ minWidth: 88 })
+  }
+
+  @Builder
+  inputRow(label: string, placeholder: string, text: string, onChange: (v: string) => void) {
+    Row({ space: 10 }) {
+      this.fieldLabel(label)
+      TextInput({ placeholder: placeholder, text: text })
+        .layoutWeight(1)
+        .backgroundColor($r('app.color.input_background'))
+        .fontColor($r('app.color.text_primary'))
+        .placeholderColor($r('app.color.text_hint'))
+        .caretColor(this.themeColor)
+        .borderRadius(12)
+        .onChange((value: string) => {
+          onChange(value);
+        })
+    }
+    .width('100%')
+  }
+
+  @Builder
+  selectRow(label: string, value: string, placeholder: string, onTap: () => void) {
+    Row({ space: 10 }) {
+      this.fieldLabel(label)
+      Text(value.length > 0 ? value : placeholder)
+        .fontSize(15)
+        .fontColor(value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .layoutWeight(1)
+        .textAlign(TextAlign.End)
+        .padding({ left: 12, right: 12, top: 12, bottom: 12 })
+        .backgroundColor($r('app.color.input_background'))
+        .borderRadius(12)
+        .onClick(() => {
+          onTap();
+        })
+    }
+    .width('100%')
   }
 
   build() {
@@ -274,126 +444,106 @@ struct BrewFormPage {
             }
             .width('100%')
 
-            Row({ space: 10 }) {
-              this.fieldLabel('冲煮方式 *')
-              Text(this.method.length > 0 ? this.method : '点击选择')
-                .fontSize(15)
-                .fontColor(this.method.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
-                .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor($r('app.color.input_background'))
-                .borderRadius(12)
-                .onClick(() => {
-                  this.openSheet('method');
-                })
-            }
-            .width('100%')
+            this.selectRow('冲煮方式 *', this.method, '点击选择', (): void => {
+              this.openSheet('method');
+            })
 
-            Row({ space: 10 }) {
-              this.fieldLabel('咖啡豆')
-              Text(this.beanName.length > 0 ? this.beanName : '不关联')
-                .fontSize(15)
-                .fontColor(this.beanName.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
-                .maxLines(1)
-                .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor($r('app.color.input_background'))
-                .borderRadius(12)
-                .onClick(() => {
-                  this.openSheet('bean');
-                })
-            }
-            .width('100%')
+            this.selectRow('咖啡豆', this.beanName, '不关联', (): void => {
+              this.openSheet('bean');
+            })
 
-            Row({ space: 10 }) {
-              this.fieldLabel('粉量（g）')
-              TextInput({ placeholder: '如：15（选填）', text: this.dose })
-                .layoutWeight(1)
-                .backgroundColor($r('app.color.input_background'))
-                .fontColor($r('app.color.text_primary'))
-                .placeholderColor($r('app.color.text_hint'))
-                .caretColor(this.themeColor)
-                .borderRadius(12)
-                .onChange((value: string) => {
-                  this.dose = value;
-                })
+            this.inputRow('粉量（g）', '如：15（选填）', this.dose, (v: string): void => {
+              this.dose = v;
+            })
+
+            if (this.fieldConfig.showPourPlan) {
+              this.inputRow('注水次数', '如：3（选填）', this.pourCount, (v: string): void => {
+                this.pourCount = v;
+              })
+              this.inputRow('第一次水量（g）', '如：30（选填）', this.pour1Water, (v: string): void => {
+                this.pour1Water = v;
+              })
+              this.inputRow('第一次时间（秒）', '如：10（选填）', this.pour1Time, (v: string): void => {
+                this.pour1Time = v;
+              })
+              this.inputRow('第二次水量（g）', '如：60（选填）', this.pour2Water, (v: string): void => {
+                this.pour2Water = v;
+              })
+              this.inputRow('第二次时间（秒）', '如：20（选填）', this.pour2Time, (v: string): void => {
+                this.pour2Time = v;
+              })
             }
-            .width('100%')
+
+            if (this.fieldConfig.showBloom) {
+              this.inputRow('闷蒸水量（g）', '如：30（选填）', this.bloomWater, (v: string): void => {
+                this.bloomWater = v;
+              })
+              this.inputRow('闷蒸时长（秒）', '如：30（选填）', this.bloomTime, (v: string): void => {
+                this.bloomTime = v;
+              })
+            }
 
             if (this.fieldConfig.showWater) {
-              Row({ space: 10 }) {
-                this.fieldLabel('水量（g）')
-                TextInput({ placeholder: '如：225（选填）', text: this.waterAmount })
-                  .layoutWeight(1)
-                  .backgroundColor($r('app.color.input_background'))
-                  .fontColor($r('app.color.text_primary'))
-                  .placeholderColor($r('app.color.text_hint'))
-                  .caretColor(this.themeColor)
-                  .borderRadius(12)
-                  .onChange((value: string) => {
-                    this.waterAmount = value;
-                  })
-              }
-              .width('100%')
+              this.inputRow(this.fieldConfig.waterLabel, '如：225（选填）', this.waterAmount, (v: string): void => {
+                this.waterAmount = v;
+              })
             }
 
             if (this.fieldConfig.showTemp) {
-              Row({ space: 10 }) {
-                this.fieldLabel('水温（℃）')
-                TextInput({ placeholder: '如：92（选填）', text: this.waterTemp })
-                  .layoutWeight(1)
-                  .backgroundColor($r('app.color.input_background'))
-                  .fontColor($r('app.color.text_primary'))
-                  .placeholderColor($r('app.color.text_hint'))
-                  .caretColor(this.themeColor)
-                  .borderRadius(12)
-                  .onChange((value: string) => {
-                    this.waterTemp = value;
-                  })
-              }
-              .width('100%')
+              this.inputRow('水温（℃）', '如：92（选填）', this.waterTemp, (v: string): void => {
+                this.waterTemp = v;
+              })
             }
 
-            Row({ space: 10 }) {
-              this.fieldLabel('研磨度')
-              Text(this.grindSize.length > 0 ? this.grindSize : '点击选择')
-                .fontSize(15)
-                .fontColor(this.grindSize.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
-                .layoutWeight(1)
-                .textAlign(TextAlign.End)
-                .padding({ left: 12, right: 12, top: 12, bottom: 12 })
-                .backgroundColor($r('app.color.input_background'))
-                .borderRadius(12)
-                .onClick(() => {
-                  this.openSheet('grind');
-                })
+            if (this.fieldConfig.showSteep) {
+              this.inputRow(this.fieldConfig.steepLabel, '如：12（选填）', this.steepValue, (v: string): void => {
+                this.steepValue = v;
+              })
             }
-            .width('100%')
 
-            Row({ space: 10 }) {
-              this.fieldLabel(`${this.fieldConfig.durationLabel}（秒）`)
-              TextInput({ placeholder: '如：150（选填）', text: this.brewDuration })
-                .layoutWeight(1)
-                .backgroundColor($r('app.color.input_background'))
-                .fontColor($r('app.color.text_primary'))
-                .placeholderColor($r('app.color.text_hint'))
-                .caretColor(this.themeColor)
-                .borderRadius(12)
-                .onChange((value: string) => {
-                  this.brewDuration = value;
+            if (this.fieldConfig.showPressTime) {
+              this.inputRow('压下时长（秒）', '如：30（选填）', this.pressSeconds, (v: string): void => {
+                this.pressSeconds = v;
+              })
+            }
+
+            if (this.fieldConfig.showPressure) {
+              this.inputRow('压力（bar）', '如：9（选填）', this.pressure, (v: string): void => {
+                this.pressure = v;
+              })
+            }
+
+            if (this.fieldConfig.showGrind) {
+              this.selectRow('研磨度', this.grindSize, '点击选择（选填）', (): void => {
+                this.openSheet('grind');
+              })
+            }
+
+            if (this.fieldConfig.showDuration) {
+              this.inputRow(`${this.fieldConfig.durationLabel}（秒）`, '如：150（选填）', this.brewDuration,
+                (v: string): void => {
+                  this.brewDuration = v;
                 })
             }
-            .width('100%')
 
             if (this.durationHint().length > 0) {
               Text(this.durationHint())
                 .fontSize(12)
                 .fontColor($r('app.color.text_tertiary'))
                 .width('100%')
-                .padding({ left: 90 })
+                .padding({ left: 98 })
+            }
+
+            if (this.fieldConfig.showYield) {
+              this.inputRow(this.fieldConfig.yieldLabel, '如：200（选填）', this.yieldAmount, (v: string): void => {
+                this.yieldAmount = v;
+              })
+            }
+
+            if (this.fieldConfig.showHeat) {
+              this.selectRow('火候', this.heatLevel, '点击选择（选填）', (): void => {
+                this.openSheet('heat');
+              })
             }
 
             Row({ space: 10 }) {
@@ -414,7 +564,7 @@ struct BrewFormPage {
             .width('100%')
 
             Column({ space: 8 }) {
-              Text('备注')
+              Text('口感备注')
                 .fontSize(14)
                 .fontColor($r('app.color.text_secondary'))
               TextArea({ placeholder: '今天这杯的感受…（选填）', text: this.notes })
@@ -491,6 +641,16 @@ struct BrewFormPage {
           options: this.grindOptions,
           onClose: (): void => {
             this.closeSheet('grind');
+          }
+        })
+      }
+
+      if (this.showHeatSheet) {
+        OptionSheet({
+          title: '火候',
+          options: this.heatOptions,
+          onClose: (): void => {
+            this.closeSheet('heat');
           }
         })
       }

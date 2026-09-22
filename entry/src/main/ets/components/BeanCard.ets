@@ -9,6 +9,35 @@ export struct BeanCard {
   onTap: (b: CoffeeBean) => void = (b: CoffeeBean) => {};
   onDelete: (b: CoffeeBean) => void = (b: CoffeeBean) => {};
 
+  private metaParts(): string[] {
+    const parts: string[] = [];
+    if (this.bean.vendor.length > 0) {
+      parts.push(this.bean.vendor);
+    }
+    if (this.bean.origin.length > 0) {
+      parts.push(this.bean.origin);
+    }
+    if (this.bean.weight > 0) {
+      parts.push(`${this.bean.weight}g`);
+    }
+    const date: string = DateUtil.formatDate(this.bean.purchaseDate);
+    if (date.length > 0) {
+      parts.push(date);
+    }
+    return parts;
+  }
+
+  private tagList(): string[] {
+    const tags: string[] = [];
+    if (this.bean.processMethod.length > 0) {
+      tags.push(this.bean.processMethod);
+    }
+    if (this.bean.roastLevel.length > 0) {
+      tags.push(this.bean.roastLevel);
+    }
+    return tags.concat(this.bean.flavorTagList());
+  }
+
   build() {
     Row({ space: 8 }) {
       Column({ space: 6 }) {
@@ -34,22 +63,18 @@ export struct BeanCard {
             .maxLines(1)
         }
 
-        Row({ space: 14 }) {
-          if (this.bean.vendor.length > 0) {
-            Text(this.bean.vendor)
-              .fontSize(12)
-              .fontColor($r('app.color.text_tertiary'))
-              .maxLines(1)
-          }
-          Text(DateUtil.formatDate(this.bean.purchaseDate))
+        if (this.metaParts().length > 0) {
+          Text(this.metaParts().join(' · '))
             .fontSize(12)
             .fontColor($r('app.color.text_tertiary'))
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .width('100%')
         }
-        .width('100%')
 
-        if (this.bean.flavorTagList().length > 0) {
+        if (this.tagList().length > 0) {
           Flex({ wrap: FlexWrap.Wrap }) {
-            ForEach(this.bean.flavorTagList(), (tag: string) => {
+            ForEach(this.tagList(), (tag: string) => {
               Text(tag)
                 .fontSize(11)
                 .fontColor(this.themeColor)

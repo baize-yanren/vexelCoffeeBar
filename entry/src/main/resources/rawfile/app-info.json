@@ -1,8 +1,8 @@
 {
-  "name": "咖啡志",
+  "name": "Vexel Coffee Bar",
   "bundleName": "com.example.vexelcoffeebar",
   "vendor": "example",
-  "versionName": "1.0.0",
+  "versionName": "0.1.0",
   "versionCode": 1000000,
   "buildVersion": "1",
   "slogan": "记录每一杯咖啡的美好",
