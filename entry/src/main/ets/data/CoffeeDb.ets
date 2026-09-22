@@ -339,4 +339,77 @@ export class CoffeeDb {
     await db.delete(new relationalStore.RdbPredicates('equipments'));
     await db.delete(new relationalStore.RdbPredicates('coffee_beans'));
   }
+
+  // ---------- 导入还原（事务：失败自动回滚） ----------
+
+  async restoreAll(beans: CoffeeBean[], equipments: Equipment[], brews: BrewRecord[]): Promise<void> {
+    const db = await this.ensureDb();
+    db.beginTransaction();
+    try {
+      await db.delete(new relationalStore.RdbPredicates('brew_records'));
+      await db.delete(new relationalStore.RdbPredicates('equipments'));
+      await db.delete(new relationalStore.RdbPredicates('coffee_beans'));
+      for (let i = 0; i < beans.length; i++) {
+        const b: CoffeeBean = beans[i];
+        const v: relationalStore.ValuesBucket = {
+          'id': b.id,
+          'name': b.name,
+          'variety': b.variety,
+          'purchase_date': b.purchaseDate,
+          'price': b.price,
+          'vendor': b.vendor,
+          'flavor_tags': b.flavorTags,
+          'origin': b.origin,
+          'weight': b.weight,
+          'roast_level': b.roastLevel,
+          'roast_date': b.roastDate,
+          'process_method': b.processMethod,
+          'shelf_life': b.shelfLife,
+          'created_at': b.createdAt > 0 ? b.createdAt : Date.now()
+        };
+        await db.insert('coffee_beans', v);
+      }
+      for (let i = 0; i < equipments.length; i++) {
+        const e: Equipment = equipments[i];
+        const v: relationalStore.ValuesBucket = {
+          'id': e.id,
+          'type': e.type,
+          'brand': e.brand,
+          'model': e.model,
+          'purchase_date': e.purchaseDate,
+          'price': e.price,
+          'notes': e.notes,
+          'accessories': e.accessories,
+          'condition_state': e.conditionState,
+          'created_at': e.createdAt > 0 ? e.createdAt : Date.now()
+        };
+        await db.insert('equipments', v);
+      }
+      for (let i = 0; i < brews.length; i++) {
+        const r: BrewRecord = brews[i];
+        const v: relationalStore.ValuesBucket = {
+          'id': r.id,
+          'brew_date': r.brewDate,
+          'method': r.method,
+          'bean_id': r.beanId,
+          'bean_name': r.beanName,
+          'dose': r.dose,
+          'water_amount': r.waterAmount,
+          'water_temp': r.waterTemp,
+          'grind_size': r.grindSize,
+          'brew_duration': r.brewDuration,
+          'rating': r.rating,
+          'notes': r.notes,
+          'extra': r.toExtraJson(),
+          'created_at': r.createdAt > 0 ? r.createdAt : Date.now()
+        };
+        await db.insert('brew_records', v);
+      }
+      db.commit();
+    } catch (e) {
+      db.rollBack();
+      console.error(`${TAG} restoreAll failed: ${(e as BusinessError).code} ${(e as BusinessError).message}`);
+      throw new Error('restoreAll failed');
+    }
+  }
 }
