@@ -8,6 +8,27 @@ import { DateUtil } from '../common/DateUtil';
 import { OcrImport, OcrImportResult } from '../service/OcrImport';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
 
+interface InputRowOptions {
+  label: string;
+  placeholder: string;
+  text: string;
+  onChange: (v: string) => void;
+}
+
+interface SelectRowOptions {
+  label: string;
+  value: string;
+  placeholder: string;
+  onTap: () => void;
+}
+
+interface DateRowOptions {
+  label: string;
+  ts: number;
+  placeholder: string;
+  onTap: () => void;
+}
+
 @Entry
 @Component
 struct BeanFormPage {
@@ -234,10 +255,10 @@ struct BeanFormPage {
   }
 
   @Builder
-  inputRow(label: string, placeholder: string, text: string, onChange: (v: string) => void) {
+  inputRow($$: InputRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      TextInput({ placeholder: placeholder, text: text })
+      this.fieldLabel($$.label)
+      TextInput({ placeholder: $$.placeholder, text: $$.text })
         .layoutWeight(1)
         .backgroundColor($r('app.color.input_background'))
         .fontColor($r('app.color.text_primary'))
@@ -245,45 +266,45 @@ struct BeanFormPage {
         .caretColor(this.themeColor)
         .borderRadius(12)
         .onChange((value: string) => {
-          onChange(value);
+          $$.onChange(value);
         })
     }
     .width('100%')
   }
 
   @Builder
-  selectRow(label: string, value: string, placeholder: string, onTap: () => void) {
+  selectRow($$: SelectRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      Text(value.length > 0 ? value : placeholder)
+      this.fieldLabel($$.label)
+      Text($$.value.length > 0 ? $$.value : $$.placeholder)
         .fontSize(15)
-        .fontColor(value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .fontColor($$.value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
         .layoutWeight(1)
         .textAlign(TextAlign.End)
         .padding({ left: 12, right: 12, top: 12, bottom: 12 })
         .backgroundColor($r('app.color.input_background'))
         .borderRadius(12)
         .onClick(() => {
-          onTap();
+          $$.onTap();
         })
     }
     .width('100%')
   }
 
   @Builder
-  dateRow(label: string, ts: number, placeholder: string, onTap: () => void) {
+  dateRow($$: DateRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      Text(ts > 0 ? DateUtil.formatDate(ts) : placeholder)
+      this.fieldLabel($$.label)
+      Text($$.ts > 0 ? DateUtil.formatDate($$.ts) : $$.placeholder)
         .fontSize(15)
-        .fontColor(ts > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .fontColor($$.ts > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
         .layoutWeight(1)
         .textAlign(TextAlign.End)
         .padding({ left: 12, right: 12, top: 12, bottom: 12 })
         .backgroundColor($r('app.color.input_background'))
         .borderRadius(12)
         .onClick(() => {
-          onTap();
+          $$.onTap();
         })
     }
     .width('100%')
@@ -339,49 +360,60 @@ struct BeanFormPage {
               this.importFromScreenshot();
             })
 
-            this.inputRow('品种 *', '如：埃塞俄比亚·耶加雪菲·日晒', this.variety, (v: string): void => {
-              this.variety = v;
-            })
+            this.inputRow({ label: '品种 *', placeholder: '如：埃塞俄比亚·耶加雪菲·日晒', text: this.variety,
+              onChange: (v: string): void => {
+                this.variety = v;
+              } })
 
-            this.inputRow('名称', '如：花魁7.0（选填）', this.name, (v: string): void => {
-              this.name = v;
-            })
+            this.inputRow({ label: '名称', placeholder: '如：花魁7.0（选填）', text: this.name,
+              onChange: (v: string): void => {
+                this.name = v;
+              } })
 
-            this.inputRow('产地', '如：埃塞俄比亚（选填）', this.origin, (v: string): void => {
-              this.origin = v;
-            })
+            this.inputRow({ label: '产地', placeholder: '如：埃塞俄比亚（选填）', text: this.origin,
+              onChange: (v: string): void => {
+                this.origin = v;
+              } })
 
-            this.inputRow('重量（g）', '如：200（选填）', this.weight, (v: string): void => {
-              this.weight = v;
-            })
+            this.inputRow({ label: '重量（g）', placeholder: '如：200（选填）', text: this.weight,
+              onChange: (v: string): void => {
+                this.weight = v;
+              } })
 
-            this.selectRow('处理法', this.processMethod, '点击选择（选填）', (): void => {
-              this.toggleSheet('process', true);
-            })
+            this.selectRow({ label: '处理法', value: this.processMethod, placeholder: '点击选择（选填）',
+              onTap: (): void => {
+                this.toggleSheet('process', true);
+              } })
 
-            this.selectRow('烘焙度', this.roastLevel, '点击选择（选填）', (): void => {
-              this.toggleSheet('roast', true);
-            })
+            this.selectRow({ label: '烘焙度', value: this.roastLevel, placeholder: '点击选择（选填）',
+              onTap: (): void => {
+                this.toggleSheet('roast', true);
+              } })
 
-            this.dateRow('购买时间', this.purchaseDate, '点击选择', (): void => {
-              this.pickDate('purchase');
-            })
+            this.dateRow({ label: '购买时间', ts: this.purchaseDate, placeholder: '点击选择',
+              onTap: (): void => {
+                this.pickDate('purchase');
+              } })
 
-            this.dateRow('烘焙日期', this.roastDate, '点击选择（选填）', (): void => {
-              this.pickDate('roast');
-            })
+            this.dateRow({ label: '烘焙日期', ts: this.roastDate, placeholder: '点击选择（选填）',
+              onTap: (): void => {
+                this.pickDate('roast');
+              } })
 
-            this.dateRow('保质期至', this.shelfLife, '点击选择（选填）', (): void => {
-              this.pickDate('shelf');
-            })
+            this.dateRow({ label: '保质期至', ts: this.shelfLife, placeholder: '点击选择（选填）',
+              onTap: (): void => {
+                this.pickDate('shelf');
+              } })
 
-            this.inputRow('价格（元）', '如：98（选填）', this.price, (v: string): void => {
-              this.price = v;
-            })
+            this.inputRow({ label: '价格（元）', placeholder: '如：98（选填）', text: this.price,
+              onChange: (v: string): void => {
+                this.price = v;
+              } })
 
-            this.inputRow('商家', '如：某宝·某某咖啡旗舰店（选填）', this.vendor, (v: string): void => {
-              this.vendor = v;
-            })
+            this.inputRow({ label: '商家', placeholder: '如：某宝·某某咖啡旗舰店（选填）', text: this.vendor,
+              onChange: (v: string): void => {
+                this.vendor = v;
+              } })
 
             Column({ space: 8 }) {
               Text('风味描述词')

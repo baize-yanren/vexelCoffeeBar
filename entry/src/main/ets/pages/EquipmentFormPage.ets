@@ -8,6 +8,20 @@ import { DateUtil } from '../common/DateUtil';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
 import { OcrImport, OcrImportResult } from '../service/OcrImport';
 
+interface InputRowOptions {
+  label: string;
+  placeholder: string;
+  text: string;
+  onChange: (v: string) => void;
+}
+
+interface SelectRowOptions {
+  label: string;
+  value: string;
+  placeholder: string;
+  onTap: () => void;
+}
+
 @Entry
 @Component
 struct EquipmentFormPage {
@@ -224,10 +238,10 @@ struct EquipmentFormPage {
   }
 
   @Builder
-  inputRow(label: string, placeholder: string, text: string, onChange: (v: string) => void) {
+  inputRow($$: InputRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      TextInput({ placeholder: placeholder, text: text })
+      this.fieldLabel($$.label)
+      TextInput({ placeholder: $$.placeholder, text: $$.text })
         .layoutWeight(1)
         .backgroundColor($r('app.color.input_background'))
         .fontColor($r('app.color.text_primary'))
@@ -235,26 +249,26 @@ struct EquipmentFormPage {
         .caretColor(this.themeColor)
         .borderRadius(12)
         .onChange((value: string) => {
-          onChange(value);
+          $$.onChange(value);
         })
     }
     .width('100%')
   }
 
   @Builder
-  selectRow(label: string, value: string, placeholder: string, onTap: () => void) {
+  selectRow($$: SelectRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      Text(value.length > 0 ? value : placeholder)
+      this.fieldLabel($$.label)
+      Text($$.value.length > 0 ? $$.value : $$.placeholder)
         .fontSize(15)
-        .fontColor(value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .fontColor($$.value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
         .layoutWeight(1)
         .textAlign(TextAlign.End)
         .padding({ left: 12, right: 12, top: 12, bottom: 12 })
         .backgroundColor($r('app.color.input_background'))
         .borderRadius(12)
         .onClick(() => {
-          onTap();
+          $$.onTap();
         })
     }
     .width('100%')
@@ -310,25 +324,30 @@ struct EquipmentFormPage {
               this.importFromScreenshot();
             })
 
-            this.selectRow('种类 *', this.type, '点击选择', (): void => {
-              this.toggleSheet('type', true);
-            })
+            this.selectRow({ label: '种类 *', value: this.type, placeholder: '点击选择',
+              onTap: (): void => {
+                this.toggleSheet('type', true);
+              } })
 
-            this.inputRow('品牌', '如：Hario（选填）', this.brand, (v: string): void => {
-              this.brand = v;
-            })
+            this.inputRow({ label: '品牌', placeholder: '如：Hario（选填）', text: this.brand,
+              onChange: (v: string): void => {
+                this.brand = v;
+              } })
 
-            this.inputRow('型号', '如：V60 陶瓷 02（选填）', this.model, (v: string): void => {
-              this.model = v;
-            })
+            this.inputRow({ label: '型号', placeholder: '如：V60 陶瓷 02（选填）', text: this.model,
+              onChange: (v: string): void => {
+                this.model = v;
+              } })
 
-            this.selectRow('新旧', this.conditionState, '点击选择（选填）', (): void => {
-              this.toggleSheet('condition', true);
-            })
+            this.selectRow({ label: '新旧', value: this.conditionState, placeholder: '点击选择（选填）',
+              onTap: (): void => {
+                this.toggleSheet('condition', true);
+              } })
 
-            this.inputRow('配件', '如：原装滤网、量勺（选填）', this.accessories, (v: string): void => {
-              this.accessories = v;
-            })
+            this.inputRow({ label: '配件', placeholder: '如：原装滤网、量勺（选填）', text: this.accessories,
+              onChange: (v: string): void => {
+                this.accessories = v;
+              } })
 
             Row({ space: 10 }) {
               this.fieldLabel('购买时间')
@@ -346,9 +365,10 @@ struct EquipmentFormPage {
             }
             .width('100%')
 
-            this.inputRow('价格（元）', '如：68（选填）', this.price, (v: string): void => {
-              this.price = v;
-            })
+            this.inputRow({ label: '价格（元）', placeholder: '如：68（选填）', text: this.price,
+              onChange: (v: string): void => {
+                this.price = v;
+              } })
 
             Column({ space: 8 }) {
               Text('备注')

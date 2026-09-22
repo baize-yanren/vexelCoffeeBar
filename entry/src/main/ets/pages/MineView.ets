@@ -7,6 +7,13 @@ import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
 
+interface GroupRowOptions {
+  label: string;
+  value: string;
+  danger: boolean;
+  onRowTap: () => void;
+}
+
 @Component
 export struct MineView {
   @StorageProp('themeColor') themeColor: string = '#6F4E37';
@@ -69,14 +76,14 @@ export struct MineView {
   }
 
   @Builder
-  groupRow(label: string, value: string, danger: boolean, onRowTap: () => void) {
+  groupRow($$: GroupRowOptions) {
     Row() {
-      Text(label)
+      Text($$.label)
         .fontSize(15)
-        .fontColor(danger ? $r('app.color.danger_color') : $r('app.color.text_primary'))
+        .fontColor($$.danger ? $r('app.color.danger_color') : $r('app.color.text_primary'))
         .layoutWeight(1)
-      if (value.length > 0) {
-        Text(value)
+      if ($$.value.length > 0) {
+        Text($$.value)
           .fontSize(14)
           .fontColor($r('app.color.text_tertiary'))
       }
@@ -88,7 +95,7 @@ export struct MineView {
     .width('100%')
     .padding({ left: 16, right: 16, top: 15, bottom: 15 })
     .onClick(() => {
-      onRowTap();
+      $$.onRowTap();
     })
   }
 
@@ -143,9 +150,10 @@ export struct MineView {
               .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
 
-            this.groupRow('默认冲煮方式', this.defaultMethod, false, (): void => {
-              this.openMethodSheet();
-            })
+            this.groupRow({ label: '默认冲煮方式', value: this.defaultMethod, danger: false,
+              onRowTap: (): void => {
+                this.openMethodSheet();
+              } })
 
             Divider()
               .color($r('app.color.divider_color'))
@@ -179,9 +187,9 @@ export struct MineView {
               .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
 
-            this.groupRow('清空数据', '', true, (): void => {
+            this.groupRow({ label: '清空数据', value: '', danger: true, onRowTap: (): void => {
               this.confirmClear();
-            })
+            } })
           }
           .width('100%')
           .backgroundColor($r('app.color.card_background'))
@@ -190,19 +198,20 @@ export struct MineView {
           .alignItems(HorizontalAlign.Start)
 
           Column() {
-            this.groupRow('版本信息', `v${this.appInfo.versionName}`, false, (): void => {})
+            this.groupRow({ label: '版本信息', value: `v${this.appInfo.versionName}`, danger: false,
+              onRowTap: (): void => {} })
             Divider()
               .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
-            this.groupRow('用户协议', '', false, (): void => {
+            this.groupRow({ label: '用户协议', value: '', danger: false, onRowTap: (): void => {
               this.getUIContext().getPromptAction().showToast({ message: this.appInfo.userAgreement });
-            })
+            } })
             Divider()
               .color($r('app.color.divider_color'))
               .margin({ left: 16, right: 16 })
-            this.groupRow('隐私政策', '', false, (): void => {
+            this.groupRow({ label: '隐私政策', value: '', danger: false, onRowTap: (): void => {
               this.getUIContext().getPromptAction().showToast({ message: this.appInfo.privacyPolicy });
-            })
+            } })
           }
           .width('100%')
           .backgroundColor($r('app.color.card_background'))

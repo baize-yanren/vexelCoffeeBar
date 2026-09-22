@@ -71,6 +71,11 @@ export class ItemCondition {
   static readonly ALL: string[] = ['全新', '二手'];
 }
 
+export class PourPlan {
+  static readonly MAX: number = 5;
+  static readonly CN: string[] = ['一', '二', '三', '四', '五'];
+}
+
 export class BrewRecord {
   id: number = -1;
   brewDate: number = 0;
@@ -93,6 +98,12 @@ export class BrewRecord {
   pour1Time: number = 0;        // 第一次注水时间（秒）
   pour2Water: number = 0;       // 第二次注水量（g）
   pour2Time: number = 0;        // 第二次注水时间（秒）
+  pour3Water: number = 0;       // 第三次注水量（g）
+  pour3Time: number = 0;        // 第三次注水时间（秒）
+  pour4Water: number = 0;       // 第四次注水量（g）
+  pour4Time: number = 0;        // 第四次注水时间（秒）
+  pour5Water: number = 0;       // 第五次注水量（g）
+  pour5Time: number = 0;        // 第五次注水时间（秒）
   bloomWater: number = 0;       // 闷蒸水量（g）
   bloomTime: number = 0;        // 闷蒸时长（秒）
   pressure: number = 0;         // 意式压力（bar）
@@ -105,6 +116,64 @@ export class BrewRecord {
     r.brewDate = brewDate;
     r.method = method;
     return r;
+  }
+
+  pourWaterAt(idx: number): number {
+    if (idx === 1) {
+      return this.pour1Water;
+    } else if (idx === 2) {
+      return this.pour2Water;
+    } else if (idx === 3) {
+      return this.pour3Water;
+    } else if (idx === 4) {
+      return this.pour4Water;
+    } else if (idx === 5) {
+      return this.pour5Water;
+    }
+    return 0;
+  }
+
+  setPourWaterAt(idx: number, v: number): void {
+    if (idx === 1) {
+      this.pour1Water = v;
+    } else if (idx === 2) {
+      this.pour2Water = v;
+    } else if (idx === 3) {
+      this.pour3Water = v;
+    } else if (idx === 4) {
+      this.pour4Water = v;
+    } else if (idx === 5) {
+      this.pour5Water = v;
+    }
+  }
+
+  pourTimeAt(idx: number): number {
+    if (idx === 1) {
+      return this.pour1Time;
+    } else if (idx === 2) {
+      return this.pour2Time;
+    } else if (idx === 3) {
+      return this.pour3Time;
+    } else if (idx === 4) {
+      return this.pour4Time;
+    } else if (idx === 5) {
+      return this.pour5Time;
+    }
+    return 0;
+  }
+
+  setPourTimeAt(idx: number, v: number): void {
+    if (idx === 1) {
+      this.pour1Time = v;
+    } else if (idx === 2) {
+      this.pour2Time = v;
+    } else if (idx === 3) {
+      this.pour3Time = v;
+    } else if (idx === 4) {
+      this.pour4Time = v;
+    } else if (idx === 5) {
+      this.pour5Time = v;
+    }
   }
 
   private static strOf(obj: Record<string, Object>, key: string): string {
@@ -126,6 +195,12 @@ export class BrewRecord {
       'pour1Time': this.pour1Time,
       'pour2Water': this.pour2Water,
       'pour2Time': this.pour2Time,
+      'pour3Water': this.pour3Water,
+      'pour3Time': this.pour3Time,
+      'pour4Water': this.pour4Water,
+      'pour4Time': this.pour4Time,
+      'pour5Water': this.pour5Water,
+      'pour5Time': this.pour5Time,
       'bloomWater': this.bloomWater,
       'bloomTime': this.bloomTime,
       'pressure': this.pressure,
@@ -149,6 +224,12 @@ export class BrewRecord {
       this.pour1Time = BrewRecord.numOf(obj, 'pour1Time');
       this.pour2Water = BrewRecord.numOf(obj, 'pour2Water');
       this.pour2Time = BrewRecord.numOf(obj, 'pour2Time');
+      this.pour3Water = BrewRecord.numOf(obj, 'pour3Water');
+      this.pour3Time = BrewRecord.numOf(obj, 'pour3Time');
+      this.pour4Water = BrewRecord.numOf(obj, 'pour4Water');
+      this.pour4Time = BrewRecord.numOf(obj, 'pour4Time');
+      this.pour5Water = BrewRecord.numOf(obj, 'pour5Water');
+      this.pour5Time = BrewRecord.numOf(obj, 'pour5Time');
       this.bloomWater = BrewRecord.numOf(obj, 'bloomWater');
       this.bloomTime = BrewRecord.numOf(obj, 'bloomTime');
       this.pressure = BrewRecord.numOf(obj, 'pressure');

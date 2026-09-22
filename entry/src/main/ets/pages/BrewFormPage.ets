@@ -1,11 +1,25 @@
 import { BusinessError } from '@kit.BasicServicesKit';
-import { BrewRecord, BrewMethod, BrewFieldConfig, GrindSize, HeatLevel, CoffeeBean } from '../model/Models';
+import { BrewRecord, BrewMethod, BrewFieldConfig, GrindSize, HeatLevel, CoffeeBean, PourPlan } from '../model/Models';
 import { FormParams } from '../model/RouteParams';
 import { CoffeeDb } from '../data/CoffeeDb';
 import { SettingsStore } from '../data/SettingsStore';
 import { DateUtil } from '../common/DateUtil';
 import { OptionItem, OptionSheet } from '../components/OptionSheet';
 import { ThemePalette } from '../common/Theme';
+
+interface InputRowOptions {
+  label: string;
+  placeholder: string;
+  text: string;
+  onChange: (v: string) => void;
+}
+
+interface SelectRowOptions {
+  label: string;
+  value: string;
+  placeholder: string;
+  onTap: () => void;
+}
 
 @Entry
 @Component
@@ -24,10 +38,8 @@ struct BrewFormPage {
   @State yieldAmount: string = '';
   @State heatLevel: string = '';
   @State pourCount: string = '';
-  @State pour1Water: string = '';
-  @State pour1Time: string = '';
-  @State pour2Water: string = '';
-  @State pour2Time: string = '';
+  @State pourWaters: string[] = ['', '', '', '', ''];
+  @State pourTimes: string[] = ['', '', '', '', ''];
   @State bloomWater: string = '';
   @State bloomTime: string = '';
   @State pressure: string = '';
@@ -103,10 +115,20 @@ struct BrewFormPage {
           this.yieldAmount = found.yieldAmount > 0 ? `${found.yieldAmount}` : '';
           this.heatLevel = found.heatLevel;
           this.pourCount = found.pourCount > 0 ? `${found.pourCount}` : '';
-          this.pour1Water = found.pour1Water > 0 ? `${found.pour1Water}` : '';
-          this.pour1Time = found.pour1Time > 0 ? `${found.pour1Time}` : '';
-          this.pour2Water = found.pour2Water > 0 ? `${found.pour2Water}` : '';
-          this.pour2Time = found.pour2Time > 0 ? `${found.pour2Time}` : '';
+          this.pourWaters = [
+            found.pour1Water > 0 ? `${found.pour1Water}` : '',
+            found.pour2Water > 0 ? `${found.pour2Water}` : '',
+            found.pour3Water > 0 ? `${found.pour3Water}` : '',
+            found.pour4Water > 0 ? `${found.pour4Water}` : '',
+            found.pour5Water > 0 ? `${found.pour5Water}` : ''
+          ];
+          this.pourTimes = [
+            found.pour1Time > 0 ? `${found.pour1Time}` : '',
+            found.pour2Time > 0 ? `${found.pour2Time}` : '',
+            found.pour3Time > 0 ? `${found.pour3Time}` : '',
+            found.pour4Time > 0 ? `${found.pour4Time}` : '',
+            found.pour5Time > 0 ? `${found.pour5Time}` : ''
+          ];
           this.bloomWater = found.bloomWater > 0 ? `${found.bloomWater}` : '';
           this.bloomTime = found.bloomTime > 0 ? `${found.bloomTime}` : '';
           this.pressure = found.pressure > 0 ? `${found.pressure}` : '';
@@ -210,6 +232,27 @@ struct BrewFormPage {
     return `= ${DateUtil.formatDuration(n)}`;
   }
 
+  private pourRowCount(): number {
+    const t: string = this.pourCount.trim();
+    if (t.length === 0) {
+      return 0;
+    }
+    const n: number = Number(t);
+    if (Number.isNaN(n) || n < 1) {
+      return 0;
+    }
+    return Math.min(Math.floor(n), PourPlan.MAX);
+  }
+
+  private pourRowIndices(): number[] {
+    const indices: number[] = [];
+    const n: number = this.pourRowCount();
+    for (let i: number = 1; i <= n; i++) {
+      indices.push(i);
+    }
+    return indices;
+  }
+
   private parseNum(s: string, label: string): number {
     const t: string = s.trim();
     if (t.length === 0) {
@@ -235,10 +278,8 @@ struct BrewFormPage {
     let durationNum: number = 0;
     let yieldNum: number = 0;
     let pourCountNum: number = 0;
-    let pour1WaterNum: number = 0;
-    let pour1TimeNum: number = 0;
-    let pour2WaterNum: number = 0;
-    let pour2TimeNum: number = 0;
+    const pourWaterNums: number[] = [0, 0, 0, 0, 0];
+    const pourTimeNums: number[] = [0, 0, 0, 0, 0];
     let bloomWaterNum: number = 0;
     let bloomTimeNum: number = 0;
     let pressureNum: number = 0;
@@ -277,21 +318,22 @@ struct BrewFormPage {
       if (pourCountNum < 0) {
         return;
       }
-      pour1WaterNum = this.parseNum(this.pour1Water, '第一次注水量');
-      if (pour1WaterNum < 0) {
+      if (pourCountNum > PourPlan.MAX) {
+        this.errorText = `注水次数最多 ${PourPlan.MAX} 次`;
         return;
       }
-      pour1TimeNum = this.parseNum(this.pour1Time, '第一次注水时间');
-      if (pour1TimeNum < 0) {
-        return;
-      }
-      pour2WaterNum = this.parseNum(this.pour2Water, '第二次注水量');
-      if (pour2WaterNum < 0) {
-        return;
-      }
-      pour2TimeNum = this.parseNum(this.pour2Time, '第二次注水时间');
-      if (pour2TimeNum < 0) {
-        return;
+      for (let i: number = 1; i <= pourCountNum; i++) {
+        const cn: string = PourPlan.CN[i - 1];
+        const wNum: number = this.parseNum(this.pourWaters[i - 1], `第${cn}次注水量`);
+        if (wNum < 0) {
+          return;
+        }
+        pourWaterNums[i - 1] = wNum;
+        const tNum: number = this.parseNum(this.pourTimes[i - 1], `第${cn}次注水时间`);
+        if (tNum < 0) {
+          return;
+        }
+        pourTimeNums[i - 1] = tNum;
       }
     }
     if (cfg.showBloom) {
@@ -333,10 +375,10 @@ struct BrewFormPage {
     r.yieldAmount = yieldNum;
     r.heatLevel = this.heatLevel;
     r.pourCount = pourCountNum;
-    r.pour1Water = pour1WaterNum;
-    r.pour1Time = pour1TimeNum;
-    r.pour2Water = pour2WaterNum;
-    r.pour2Time = pour2TimeNum;
+    for (let i: number = 1; i <= PourPlan.MAX; i++) {
+      r.setPourWaterAt(i, i <= pourCountNum ? pourWaterNums[i - 1] : 0);
+      r.setPourTimeAt(i, i <= pourCountNum ? pourTimeNums[i - 1] : 0);
+    }
     r.bloomWater = bloomWaterNum;
     r.bloomTime = bloomTimeNum;
     r.pressure = pressureNum;
@@ -371,10 +413,10 @@ struct BrewFormPage {
   }
 
   @Builder
-  inputRow(label: string, placeholder: string, text: string, onChange: (v: string) => void) {
+  inputRow($$: InputRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      TextInput({ placeholder: placeholder, text: text })
+      this.fieldLabel($$.label)
+      TextInput({ placeholder: $$.placeholder, text: $$.text })
         .layoutWeight(1)
         .backgroundColor($r('app.color.input_background'))
         .fontColor($r('app.color.text_primary'))
@@ -382,26 +424,26 @@ struct BrewFormPage {
         .caretColor(this.themeColor)
         .borderRadius(12)
         .onChange((value: string) => {
-          onChange(value);
+          $$.onChange(value);
         })
     }
     .width('100%')
   }
 
   @Builder
-  selectRow(label: string, value: string, placeholder: string, onTap: () => void) {
+  selectRow($$: SelectRowOptions) {
     Row({ space: 10 }) {
-      this.fieldLabel(label)
-      Text(value.length > 0 ? value : placeholder)
+      this.fieldLabel($$.label)
+      Text($$.value.length > 0 ? $$.value : $$.placeholder)
         .fontSize(15)
-        .fontColor(value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
+        .fontColor($$.value.length > 0 ? $r('app.color.text_primary') : $r('app.color.text_hint'))
         .layoutWeight(1)
         .textAlign(TextAlign.End)
         .padding({ left: 12, right: 12, top: 12, bottom: 12 })
         .backgroundColor($r('app.color.input_background'))
         .borderRadius(12)
         .onClick(() => {
-          onTap();
+          $$.onTap();
         })
     }
     .width('100%')
@@ -444,86 +486,124 @@ struct BrewFormPage {
             }
             .width('100%')
 
-            this.selectRow('冲煮方式 *', this.method, '点击选择', (): void => {
-              this.openSheet('method');
-            })
+            this.selectRow({ label: '冲煮方式 *', value: this.method, placeholder: '点击选择',
+              onTap: (): void => {
+                this.openSheet('method');
+              } })
 
-            this.selectRow('咖啡豆', this.beanName, '不关联', (): void => {
-              this.openSheet('bean');
-            })
+            this.selectRow({ label: '咖啡豆', value: this.beanName, placeholder: '不关联',
+              onTap: (): void => {
+                this.openSheet('bean');
+              } })
 
-            this.inputRow('粉量（g）', '如：15（选填）', this.dose, (v: string): void => {
-              this.dose = v;
-            })
+            this.inputRow({ label: '粉量（g）', placeholder: '如：15（选填）', text: this.dose,
+              onChange: (v: string): void => {
+                this.dose = v;
+              } })
 
             if (this.fieldConfig.showPourPlan) {
-              this.inputRow('注水次数', '如：3（选填）', this.pourCount, (v: string): void => {
-                this.pourCount = v;
-              })
-              this.inputRow('第一次水量（g）', '如：30（选填）', this.pour1Water, (v: string): void => {
-                this.pour1Water = v;
-              })
-              this.inputRow('第一次时间（秒）', '如：10（选填）', this.pour1Time, (v: string): void => {
-                this.pour1Time = v;
-              })
-              this.inputRow('第二次水量（g）', '如：60（选填）', this.pour2Water, (v: string): void => {
-                this.pour2Water = v;
-              })
-              this.inputRow('第二次时间（秒）', '如：20（选填）', this.pour2Time, (v: string): void => {
-                this.pour2Time = v;
-              })
+              this.inputRow({ label: '注水次数', placeholder: `1-${PourPlan.MAX} 次（选填）`, text: this.pourCount,
+                onChange: (v: string): void => {
+                  this.pourCount = v;
+                } })
+
+              ForEach(this.pourRowIndices(), (i: number) => {
+                Column({ space: 12 }) {
+                  Row({ space: 10 }) {
+                    this.fieldLabel(`第${PourPlan.CN[i - 1]}次水量（g）`)
+                    TextInput({ placeholder: '如：30（选填）', text: this.pourWaters[i - 1] })
+                      .layoutWeight(1)
+                      .backgroundColor($r('app.color.input_background'))
+                      .fontColor($r('app.color.text_primary'))
+                      .placeholderColor($r('app.color.text_hint'))
+                      .caretColor(this.themeColor)
+                      .borderRadius(12)
+                      .onChange((value: string) => {
+                        this.pourWaters[i - 1] = value;
+                      })
+                  }
+                  .width('100%')
+
+                  Row({ space: 10 }) {
+                    this.fieldLabel(`第${PourPlan.CN[i - 1]}次时间（秒）`)
+                    TextInput({ placeholder: '如：10（选填）', text: this.pourTimes[i - 1] })
+                      .layoutWeight(1)
+                      .backgroundColor($r('app.color.input_background'))
+                      .fontColor($r('app.color.text_primary'))
+                      .placeholderColor($r('app.color.text_hint'))
+                      .caretColor(this.themeColor)
+                      .borderRadius(12)
+                      .onChange((value: string) => {
+                        this.pourTimes[i - 1] = value;
+                      })
+                  }
+                  .width('100%')
+                }
+                .width('100%')
+              }, (i: number): string => `pour_${i}`)
             }
 
             if (this.fieldConfig.showBloom) {
-              this.inputRow('闷蒸水量（g）', '如：30（选填）', this.bloomWater, (v: string): void => {
-                this.bloomWater = v;
-              })
-              this.inputRow('闷蒸时长（秒）', '如：30（选填）', this.bloomTime, (v: string): void => {
-                this.bloomTime = v;
-              })
+              this.inputRow({ label: '闷蒸水量（g）', placeholder: '如：30（选填）', text: this.bloomWater,
+                onChange: (v: string): void => {
+                  this.bloomWater = v;
+                } })
+              this.inputRow({ label: '闷蒸时长（秒）', placeholder: '如：30（选填）', text: this.bloomTime,
+                onChange: (v: string): void => {
+                  this.bloomTime = v;
+                } })
             }
 
             if (this.fieldConfig.showWater) {
-              this.inputRow(this.fieldConfig.waterLabel, '如：225（选填）', this.waterAmount, (v: string): void => {
-                this.waterAmount = v;
-              })
+              this.inputRow({ label: this.fieldConfig.waterLabel, placeholder: '如：225（选填）',
+                text: this.waterAmount,
+                onChange: (v: string): void => {
+                  this.waterAmount = v;
+                } })
             }
 
             if (this.fieldConfig.showTemp) {
-              this.inputRow('水温（℃）', '如：92（选填）', this.waterTemp, (v: string): void => {
-                this.waterTemp = v;
-              })
+              this.inputRow({ label: '水温（℃）', placeholder: '如：92（选填）', text: this.waterTemp,
+                onChange: (v: string): void => {
+                  this.waterTemp = v;
+                } })
             }
 
             if (this.fieldConfig.showSteep) {
-              this.inputRow(this.fieldConfig.steepLabel, '如：12（选填）', this.steepValue, (v: string): void => {
-                this.steepValue = v;
-              })
+              this.inputRow({ label: this.fieldConfig.steepLabel, placeholder: '如：12（选填）',
+                text: this.steepValue,
+                onChange: (v: string): void => {
+                  this.steepValue = v;
+                } })
             }
 
             if (this.fieldConfig.showPressTime) {
-              this.inputRow('压下时长（秒）', '如：30（选填）', this.pressSeconds, (v: string): void => {
-                this.pressSeconds = v;
-              })
+              this.inputRow({ label: '压下时长（秒）', placeholder: '如：30（选填）', text: this.pressSeconds,
+                onChange: (v: string): void => {
+                  this.pressSeconds = v;
+                } })
             }
 
             if (this.fieldConfig.showPressure) {
-              this.inputRow('压力（bar）', '如：9（选填）', this.pressure, (v: string): void => {
-                this.pressure = v;
-              })
+              this.inputRow({ label: '压力（bar）', placeholder: '如：9（选填）', text: this.pressure,
+                onChange: (v: string): void => {
+                  this.pressure = v;
+                } })
             }
 
             if (this.fieldConfig.showGrind) {
-              this.selectRow('研磨度', this.grindSize, '点击选择（选填）', (): void => {
-                this.openSheet('grind');
-              })
+              this.selectRow({ label: '研磨度', value: this.grindSize, placeholder: '点击选择（选填）',
+                onTap: (): void => {
+                  this.openSheet('grind');
+                } })
             }
 
             if (this.fieldConfig.showDuration) {
-              this.inputRow(`${this.fieldConfig.durationLabel}（秒）`, '如：150（选填）', this.brewDuration,
-                (v: string): void => {
+              this.inputRow({ label: `${this.fieldConfig.durationLabel}（秒）`, placeholder: '如：150（选填）',
+                text: this.brewDuration,
+                onChange: (v: string): void => {
                   this.brewDuration = v;
-                })
+                } })
             }
 
             if (this.durationHint().length > 0) {
@@ -535,15 +615,18 @@ struct BrewFormPage {
             }
 
             if (this.fieldConfig.showYield) {
-              this.inputRow(this.fieldConfig.yieldLabel, '如：200（选填）', this.yieldAmount, (v: string): void => {
-                this.yieldAmount = v;
-              })
+              this.inputRow({ label: this.fieldConfig.yieldLabel, placeholder: '如：200（选填）',
+                text: this.yieldAmount,
+                onChange: (v: string): void => {
+                  this.yieldAmount = v;
+                } })
             }
 
             if (this.fieldConfig.showHeat) {
-              this.selectRow('火候', this.heatLevel, '点击选择（选填）', (): void => {
-                this.openSheet('heat');
-              })
+              this.selectRow({ label: '火候', value: this.heatLevel, placeholder: '点击选择（选填）',
+                onTap: (): void => {
+                  this.openSheet('heat');
+                } })
             }
 
             Row({ space: 10 }) {
